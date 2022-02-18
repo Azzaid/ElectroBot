@@ -1,0 +1,28 @@
+{
+  "name": "JarryRoll",
+  "productName": "Jarry multi bot",
+  "version": "1.7.0",
+  "description": "A nut.js sample which shows usage with Electron",
+  "main": "main.js",
+  "scripts": {
+    "pretest": "electron-rebuild",
+    "test": "electron .",
+    "build": "npx electron-packager ./"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nut-tree/trailmix/issues"
+  },
+  "homepage": "https://github.com/nut-tree/trailmix#trailmix",
+  "dependencies": {
+    "@nut-tree/nut-js": "next",
+    "repeat-promise-until-resolved": "^1.0.11"
+  },
+  "devDependencies": {
+    "electron": "^13.0.0",
+    "electron-packager": "^15.4.0",
+    "electron-rebuild": "^3.2.3",
+    "jest": "^26.6.3"
+  }
+}

@@ -1,0 +1,275 @@
+body {
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    background-color: #222f3e;
+    color: bisque;
+}
+
+#content {
+    padding: 10px;
+}
+
+.buttons_holder {
+    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+    border-bottom: gray 1px solid;
+}
+
+.infoZone {
+    display: flex;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border-bottom: gray 1px solid;
+}
+
+.instructionsTable {
+    margin-top: 15px;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.instructionsTable tr td {
+    border-bottom: 1px solid black;
+    padding: 5px;
+}
+
+.instructionsTable td {
+    vertical-align: top;
+}
+
+.resultsWrapper {
+    display: flex;
+    min-height: 50px;
+    font-size: 30px;
+    border: solid 3px blanchedalmond;
+}
+
+.consoleHolder {
+    width: 40%;
+}
+
+.console {
+    height: 100%;
+    font-size: 20px;
+    line-height: 25px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.totals {
+    height: 100%;
+    width: 100%;
+    font-size: 20px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#exit {
+    color: white;
+    font-size: 1.5rem;
+    background: darkblue;
+}
+
+.testButton {
+    cursor: pointer;
+    width: 150px;
+    height: 50px;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    background-color: cornflowerblue;
+}
+
+.startButton {
+    cursor: pointer;
+    width: 150px;
+    height: 50px;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    background-color: green;
+}
+
+.stopButton {
+    cursor: pointer;
+    width: 150px;
+    height: 50px;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    background-color: red;
+}
+
+.eyeWrapper {
+    position: relative;
+    width: 100%;
+    height: 200px;
+}
+
+.eye {
+    width: 200px;
+    height: 200px;
+    background: #fff;
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    border-radius: 75% 0;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+@keyframes wander {
+    from {
+        transform: translate(-95%, -5%);
+    }
+
+    to {
+        transform: translate(-5%, -90%);
+    }
+}
+
+.ball {
+    width: 40px;
+    height: 40px;
+    background: #222f3e;
+    border-radius: 50%;
+    border: 30px solid #0CBAA6;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transition: 0.5s;
+    transform: translate(-50%, -50%);;
+}
+
+.eye.wander .ball {
+    animation: 2s infinite alternate wander;
+    animation-timing-function: ease-in-out;
+}
+
+.shut {
+    width: 300px;
+    height: 160px;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    z-index: 999;
+}
+
+.shut span {
+    display: block;
+    width: 100%;
+    height: 20%;
+    background: #ff6b6b;
+    border-radius: 0 0 60% 60%;
+    transition: 0.4s all;
+}
+
+.eye:hover > .shut span {
+    height: 100%;
+}
+
+.eye.close > .shut span {
+    height: 100%;
+}
+
+.button {
+    background-image: linear-gradient(92.88deg, #455EB5 9.16%, #5643CC 43.89%, #673FD7 64.72%);
+    border-radius: 8px;
+    border-style: none;
+    box-sizing: border-box;
+    color: #FFFFFF;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: "Inter UI","SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    height: 45px;
+    width: 200px;
+    padding: 0 1.6rem;
+    text-align: center;
+    text-shadow: rgba(0, 0, 0, 0.25) 0 3px 8px;
+    transition: all .5s;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+.button:hover {
+    box-shadow: rgba(80, 63, 205, 0.5) 0 1px 30px;
+    transition-duration: .1s;
+}
+
+@media (min-width: 768px) {
+    .button {
+        padding: 0 2.6rem;
+    }
+}
+
+.button.testButton {
+    background-image: linear-gradient(92.88deg, #455EB5 9.16%, #5643CC 43.89%, #673FD7 64.72%);
+}
+
+.button.testButton:hover {
+    box-shadow: rgba(80, 63, 205, 0.7) 0 1px 30px;
+    transition-duration: .1s;
+}
+
+.button.startButton {
+    background-image: linear-gradient(92.88deg, #046140 9.16%, #2A9819 43.89%, #26C80C 64.72%);
+}
+
+.button.startButton:hover {
+    box-shadow: rgba(4, 97, 64, 0.7) 0 1px 30px;
+    transition-duration: .1s;
+}
+
+.button.stopButton {
+    background-image: linear-gradient(92.88deg, #800000 9.16%, #990000 43.89%, #b30000 64.72%);
+}
+
+.button.stopButton:hover {
+    box-shadow: rgba(176, 0, 0, 0.7) 0 1px 30px;
+    transition-duration: .1s;
+}
+
+
+.expandableWrapper {
+    height: 45px;
+    overflow: hidden;
+    transition: height 2s;
+}
+
+.expandableWrapper.expanded {
+    height: auto;
+}
+
+.expandableHeader {
+    height: 45px;
+    padding: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.expandableHeader:hover {
+    background-color: #054f35;
+}
+
+.expandable12312312Header:hover {
+    background-color: #223e34;
+}
+
+.expandablsdfsdfseHeader:hover {
+    background-color: #046140;
+}
