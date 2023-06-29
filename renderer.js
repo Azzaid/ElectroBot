@@ -1,4 +1,5 @@
 const {ipcRenderer, ipcMain, app} = require("electron");
+const goals = require("./botLogick/constants/goals");
 
 const totalsHolder = document.getElementById('totals');
 let totalsObj = {};
@@ -33,9 +34,17 @@ logFolder.onclick = () => {
     ipcRenderer.send("control", "logFolder");
 }
 
-const searchTarget = document.getElementById("searchTarget");
-searchTarget.onchange = (event) => {
-    ipcRenderer.send("control", {type:"searchTarget", payload: event.target.value});
+const searchTarget1 = document.getElementById("searchTarget1");
+searchTarget1.onchange = (event) => {
+    ipcRenderer.send("control", {type:"searchTarget", payload: {index:0, value:event.target.value}});
+}
+const searchTarget2 = document.getElementById("searchTarget2");
+searchTarget2.onchange = (event) => {
+    ipcRenderer.send("control", {type:"searchTarget", payload: {index:1, value:event.target.value}});
+}
+const searchTarget3 = document.getElementById("searchTarget3");
+searchTarget3.onchange = (event) => {
+    ipcRenderer.send("control", {type:"searchTarget", payload: {index:2, value:event.target.value}});
 }
 
 const test = document.getElementById('test');
@@ -62,6 +71,24 @@ medvedi.onclick = () => {
     ipcRenderer.send("eye", "stop");
 }
 
+const prepareSpy = document.getElementById('prepareSpy');
+prepareSpy.onclick = () => {
+    ipcRenderer.send("eye", "open");
+    ipcRenderer.send("control", "prepareSpy");
+}
+
+const sendSpy = document.getElementById('sendSpy');
+sendSpy.onclick = () => {
+    ipcRenderer.send("eye", "wander");
+    ipcRenderer.send("control", "sendSpy");
+}
+
+const withdrawSpy = document.getElementById('withdrawSpy');
+withdrawSpy.onclick = () => {
+    ipcRenderer.send("eye", "stop");
+    ipcRenderer.send("control", "withdrawSpy");
+}
+
 const consoleNode = document.getElementById("console")
 const consoleNodeClear = () => {
     console.log('/////////////////////////////////////clear console///////////////////////////////////////////')
@@ -75,6 +102,12 @@ const consoleNodeLog = (text) => {
     consoleNode.appendChild(logDiv);
 }
 
+const consoleNodeAddImage = (imageUrl) => {
+    const logImage = document.createElement("img");
+    logImage.src = imageUrl;
+    consoleNode.appendChild(logImage);
+}
+
 const eye = document.getElementById("eye");
 
 ipcRenderer.on("eye", (event, args) => {
@@ -84,13 +117,14 @@ ipcRenderer.on("eye", (event, args) => {
         eye.classList.remove("close");
     }
     if (args === "wander") {
+        eye.classList.remove("close");
         eye.classList.add("wander");
     }
     if (args === "stop") {
         eye.classList.remove("wander");
     }
     if (args === "close") {
-        eye.classList.remove("close");
+        eye.classList.add("close");
     }
 });
 
@@ -101,6 +135,9 @@ ipcRenderer.on("log", (event, args) => {
     }
     if (args.type === "log") {
         consoleNodeLog(args.payload);
+    }
+    if (args.type === "addImage") {
+        consoleNodeAddImage(args.payload);
     }
     if (args.type === "updateTotals") {
         totalsObj = {...totalsObj, ...args.payload};

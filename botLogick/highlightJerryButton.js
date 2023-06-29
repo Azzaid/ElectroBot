@@ -1,6 +1,7 @@
 const {mouse, screen, straightTo, centerOf, left, right, up, down, Region, FileType } = require("@nut-tree/nut-js");
 const {screen: electronScreen } = require('electron')
 const repeatPromiseUntilResolved = require('repeat-promise-until-resolved');
+const goals = require("./constants/goals");
 
 class JerryRoller {
   constructor(window) {
@@ -43,12 +44,33 @@ class JerryRoller {
     this.isRolling = false;
     this.stopFlagSet = false;
     this.serverPostfix = '';
-    this.searchTarget = '2dress1sixStarNew'
+    this.searchTarget = {
+      sixStarNewDress:3,
+      newDress:0,
+      sixStarNew:0,
+      new:0
+    };
     this.logFolder = null;
+    this.targetsList = ["sixStarNew", "sixStarNew", "sixStarNew"];
+  }
+
+  checkSearchTarget = (stepTotals) => {
+    //this.consoleNodeLog(`check new ${stepTotals.new} aganist ${this.searchTarget.new}`);
+    return !!(stepTotals.new >= this.searchTarget.new &&
+        stepTotals.newDress >= this.searchTarget.newDress &&
+        stepTotals.sixStarNew >= this.searchTarget.sixStarNew &&
+        stepTotals.sixStarNewDress >= this.searchTarget.sixStarNewDress)
   }
   
-  setSearchTarget = (newSearchTarget) => {
-    this.searchTarget = newSearchTarget;
+  setSearchTarget = ({index, value}) => {
+    this.targetsList[index] = value;
+    this.searchTarget = {
+      sixStarNewDress:0,
+      newDress:0,
+      sixStarNew:0,
+      new:0
+    };
+    this.targetsList.forEach(target => {this.searchTarget[target]++})
   }
 
   setLogFolder = (newLogFolder => {
@@ -123,8 +145,12 @@ class JerryRoller {
     this.electronWindow.webContents.send("log", {type: "updateTotals", payload: this.totalsObj});
     this.totalsObj.totalRolls = this.totalsObj.totalRolls + 1;
     this.consoleNodeClear();
-    this.consoleNodeLog(`start another roll aim for ${this.searchTarget}`);
+    this.consoleNodeLog(`start another roll aim for ${this.searchTarget.name}`);
     let tryAgainButton = centerOf(this.buttonSearchRegion);
+
+
+
+
 
     try {
       tryAgainButton = await screen.find("tryAgainButton.png", {searchRegion: this.buttonSearchRegion});
@@ -133,35 +159,58 @@ class JerryRoller {
       throw new Error("Try again button not found");
     }
 
+
+
+
     this.consoleNodeLog("click try again");
     await this.clickOn(tryAgainButton);
 
     this.consoleNodeLog("wait for jerry to pop");
     await this.sleep(7000);
-    let newsAmount = 0;
-    let sixStarDressAmount = 0;
-    let sixStarNewsAmount = 0;
+    let stepTotals = {
+      sixStarNewDress:3,
+      newDress:0,
+      sixStarNew:0,
+      new:0,
+    }
+
+
+
+
 
     this.consoleNodeLog("first check");
     await screen.find("StarCenter.png", {searchRegion: this.firsStarSearchRegion});
-    newsAmount = newsAmount + 1;
+    stepTotals.new++;
     this.totalsObj.totalNew = this.totalsObj.totalNew + 1;
     this.totalsObj.singleNewRolls = this.totalsObj.singleNewRolls + 1;
     this.consoleNodeLog("found new");
 
+    let sixStar = false;
     try {
       await screen.find("StarCenter.png", {searchRegion: this.sixsStarSearchRegion});
       this.consoleNodeLog("found six star");
-      sixStarNewsAmount = sixStarNewsAmount + 1;
+      stepTotals.sixStarNew++;
+      sixStar = true;
+    } catch (e) {
+      this.consoleNodeLog("error! not a six star");
+    }
 
+    try {
       await screen.find("dressIcon.png", {searchRegion: this.dressIconSearchRegion});
       this.consoleNodeLog("found dress");
 
       this.totalsObj.singleDressRolls = this.totalsObj.singleDressRolls + 1;
-      sixStarDressAmount = sixStarDressAmount + 1
+      stepTotals.newDress++;
+      if (sixStar) {
+        stepTotals.sixStarNewDress++;
+      }
     } catch (e) {
-      this.consoleNodeLog("error! not a six star dress");
+      this.consoleNodeLog("error! not a dress");
     }
+
+
+    if (this.checkSearchTarget(stepTotals)) return true
+
 
     this.consoleNodeLog("dismiss new screen");
     await this.clickOn(tryAgainButton);
@@ -173,86 +222,127 @@ class JerryRoller {
 
 
 
+
+
     this.consoleNodeLog("second check");
     await screen.find("StarCenter.png", {searchRegion: this.firsStarSearchRegion});
-    newsAmount = newsAmount + 1;
+    stepTotals.new++;
     this.totalsObj.totalNew = this.totalsObj.totalNew + 1;
     this.totalsObj.doubleNewRolls = this.totalsObj.doubleNewRolls + 1;
     this.totalsObj.singleNewRolls = this.totalsObj.singleNewRolls - 1;
     this.consoleNodeLog("found second new");
 
+
+
+
+
+    sixStar = false;
     try {
       await screen.find("StarCenter.png", {searchRegion: this.sixsStarSearchRegion});
       this.consoleNodeLog("found six star");
-      sixStarNewsAmount = sixStarNewsAmount + 1;
+      stepTotals.sixStarNew++;
+      sixStar = true;
+    } catch (e) {
+      this.consoleNodeLog("error! not a six star");
+    }
 
+    try {
       await screen.find("dressIcon.png", {searchRegion: this.dressIconSearchRegion});
       this.consoleNodeLog("found dress");
 
-      if (sixStarDressAmount === 1) {
-        this.totalsObj.twoDressRolls = this.totalsObj.twoDressRolls + 1;
-        this.totalsObj.singleDressRolls = this.totalsObj.singleDressRolls - 1;
-        sixStarDressAmount = sixStarDressAmount + 1
-        this.consoleNodeLog("this is second dress");
-      } else {
-        this.totalsObj.singleDressRolls = this.totalsObj.singleDressRolls + 1;
-        sixStarDressAmount = sixStarDressAmount + 1
+      this.totalsObj.singleDressRolls = this.totalsObj.singleDressRolls + 1;
+      stepTotals.newDress++;
+
+      if (sixStar) {
+        stepTotals.sixStarNewDress++;
+        if (stepTotals.sixStarNewDress === 1) {
+          this.totalsObj.twoDressRolls = this.totalsObj.twoDressRolls + 1;
+          this.totalsObj.singleDressRolls = this.totalsObj.singleDressRolls - 1;
+          this.consoleNodeLog("this is second dress");
+        } else {
+          this.totalsObj.singleDressRolls = this.totalsObj.singleDressRolls + 1;
+        }
       }
     } catch (e) {
-      this.consoleNodeLog("error! not a six star dress");
+      this.consoleNodeLog("error! not a dress");
     }
+
+
+    if (this.checkSearchTarget(stepTotals)) return true
+
+
 
     this.consoleNodeLog("dismiss second new screen");
     await this.clickOn(tryAgainButton);
 
-    if (sixStarDressAmount === 2 && this.searchTarget === '2dress') return true
-
     this.consoleNodeLog("wait for third new screen");
     await this.sleep(6000);
-    if (sixStarDressAmount === 2) {
+
+
+    if (stepTotals.sixStarNewDress === 2) {
       if (this.logFolder) {
         await screen.captureRegion(`twoDressRoll_${this.attemptNumber}`, this.proposedPlayerRegion, ".png", this.logFolder)
       }
     }
 
+
+
+
     await screen.find("StarCenter.png", {searchRegion: this.firsStarSearchRegion});
-    newsAmount = newsAmount + 1;
+    stepTotals.sixStarNew++;
     this.totalsObj.totalNew = this.totalsObj.totalNew + 1;
     this.totalsObj.tripleNewRolls = this.totalsObj.tripleNewRolls + 1;
     this.totalsObj.doubleNewRolls = this.totalsObj.doubleNewRolls - 1;
-    this.consoleNodeLog("wait for third new screen");
+    this.consoleNodeLog("found third new");
 
+
+
+
+    sixStar = false;
     try {
       await screen.find("StarCenter.png", {searchRegion: this.sixsStarSearchRegion});
       this.consoleNodeLog("found six star");
-      sixStarNewsAmount = sixStarNewsAmount + 1;
+      stepTotals.sixStarNew++;
+      sixStar = true;
+    } catch (e) {
+      this.consoleNodeLog("error! not a six star");
+    }
 
+    try {
       await screen.find("dressIcon.png", {searchRegion: this.dressIconSearchRegion});
       this.consoleNodeLog("found dress");
 
-      if (sixStarDressAmount === 2) {
-        sixStarDressAmount = sixStarDressAmount + 1
-        this.consoleNodeLog("this is third dress");
-      } else if (sixStarDressAmount === 1) {
-        this.totalsObj.twoDressRolls = this.totalsObj.twoDressRolls + 1;
-        this.totalsObj.singleDressRolls = this.totalsObj.singleDressRolls - 1;
-        sixStarDressAmount = sixStarDressAmount + 1
-        this.consoleNodeLog("this is second dress");
-      } else {
-        this.totalsObj.singleDressRolls = this.totalsObj.singleDressRolls + 1;
-        sixStarDressAmount = sixStarDressAmount + 1
-        this.consoleNodeLog("this is first dress");
+      this.totalsObj.singleDressRolls = this.totalsObj.singleDressRolls + 1;
+      stepTotals.newDress++;
+
+      if (sixStar) {
+        stepTotals.sixStarNewDress++;
+        if (stepTotals.sixStarNewDress === 2) {
+          this.consoleNodeLog("this is third dress");
+        } else if (stepTotals.sixStarNewDress === 1) {
+          this.totalsObj.twoDressRolls = this.totalsObj.twoDressRolls + 1;
+          this.totalsObj.singleDressRolls = this.totalsObj.singleDressRolls - 1;
+          this.consoleNodeLog("this is second dress");
+        } else {
+          this.totalsObj.singleDressRolls = this.totalsObj.singleDressRolls + 1;
+          this.consoleNodeLog("this is first dress");
+        }
       }
     } catch (e) {
-      this.consoleNodeLog("error! not a six star dress");
+      this.consoleNodeLog("error! not a dress");
     }
+
+
 
     this.consoleNodeLog("dismiss third new screen");
     await this.clickOn(tryAgainButton);
 
     this.consoleNodeLog("wait for finish");
     await this.sleep(4000);
-    if (sixStarDressAmount === 2 || sixStarDressAmount === 3) {
+
+
+
+    if (stepTotals.sixStarNewDress === 2 || stepTotals.sixStarNewDress === 3) {
       if (this.logFolder) {
         await screen.captureRegion(`twoDressRoll_${this.attemptNumber}`, this.proposedPlayerRegion, ".png", this.logFolder)
       }
@@ -261,17 +351,13 @@ class JerryRoller {
       await screen.captureRegion(`threeNewRoll_${this.attemptNumber}`, this.proposedPlayerRegion, ".png", this.logFolder)
     }
 
-    if (sixStarDressAmount === 2 && this.searchTarget === '2dress') return true
-    if (sixStarDressAmount === 2 && newsAmount === 3 && this.searchTarget === '2dress1New') return true
-    if (sixStarDressAmount === 2 && sixStarNewsAmount === 3 && this.searchTarget === '2dress1sixStarNew') return true
-    if (sixStarDressAmount === 3) return true
+    if (this.checkSearchTarget(stepTotals)) return true
 
-    throw new Error(`found only ${sixStarDressAmount} dresses`);
+    throw new Error(`found only ${stepTotals.sixStarNewDress} dresses`);
   }
 
   highlightSearchRegion = async () => {
-    const proposedDPI = electronScreen.getPrimaryDisplay().scaleFactor;
-    this.consoleNodeLog(`DPI check got ${proposedDPI}`);
+    const proposedDPI = 1;    this.consoleNodeLog(`DPI check got ${proposedDPI}`);
 
     this.consoleNodeLog("search for nox logo");
     let logo = null;

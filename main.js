@@ -3,9 +3,11 @@ const {mouse, screen, straightTo, centerOf, left, right, up, down} = require("@n
 const path = require('path')
 const JerryRoller = require("./botLogick/highlightJerryButton");
 const PorryGater = require("./botLogick/PorryGatter");
+const leatherboardScreener = require("./botLogick/screenAllLeatherboardLikeShit");
 let mainWindow = '';
 let jerryRollEngine = null;
 let poryGatterEngine = null;
+let screenerEngine = null;
 
 const consoleNodeClear = () => {
     mainWindow.webContents.send("log", {type: "clear"});
@@ -38,6 +40,12 @@ function createWindow() {
         poryGatterEngine = new PorryGater(mainWindow);
     } catch (createError) {
         consoleNodeLog(`poryGatterEngine engine creation error ${createError}`);
+    }
+
+    try {
+        screenerEngine = new leatherboardScreener(mainWindow);
+    } catch (createError) {
+        consoleNodeLog(`screenerEngine engine creation error ${createError}`);
     }
 }
 
@@ -110,6 +118,30 @@ ipcMain.on("control", (event, args) => {
     if (args === "medvedi") {
         try {
             jerryRollEngine.stop();
+        } catch (testError) {
+            consoleNodeLog(`test engine error ${error}`);
+        }
+
+    }
+    if (args === "prepareSpy") {
+        try {
+            screenerEngine.highlightSearchRegion();
+        } catch (testError) {
+            consoleNodeLog(`test engine error ${error}`);
+        }
+
+    }
+    if (args === "sendSpy") {
+        try {
+            screenerEngine.rollower();
+        } catch (testError) {
+            consoleNodeLog(`test engine error ${error}`);
+        }
+
+    }
+    if (args === "withdrawSpy") {
+        try {
+            screenerEngine.stop();
         } catch (testError) {
             consoleNodeLog(`test engine error ${error}`);
         }

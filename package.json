@@ -17,7 +17,10 @@
   "homepage": "https://github.com/nut-tree/trailmix#trailmix",
   "dependencies": {
     "@nut-tree/nut-js": "next",
-    "repeat-promise-until-resolved": "^1.0.11"
+    "excel4node": "^1.8.2",
+    "repeat-promise-until-resolved": "^1.0.11",
+    "tesseract.js": "^4.1.1",
+    "tesseract.js-core": "^4.0.4"
   },
   "devDependencies": {
     "electron": "^13.0.0",
