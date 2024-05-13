@@ -16,7 +16,8 @@
   },
   "homepage": "https://github.com/nut-tree/trailmix#trailmix",
   "dependencies": {
-    "@nut-tree/nut-js": "next",
+    "@nut-tree/nut-js": "latest",
+    "@nut-tree/template-matcher": "^2.0.0",
     "excel4node": "^1.8.2",
     "repeat-promise-until-resolved": "^1.0.11",
     "tesseract.js": "^4.1.1",

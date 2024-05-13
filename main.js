@@ -1,13 +1,15 @@
-const {app, ipcMain, BrowserWindow, dialog} = require('electron')
+const {app, ipcMain, BrowserWindow, dialog, globalShortcut} = require('electron')
 const {mouse, screen, straightTo, centerOf, left, right, up, down} = require("@nut-tree/nut-js");
 const path = require('path')
 const JerryRoller = require("./botLogick/highlightJerryButton");
 const PorryGater = require("./botLogick/PorryGatter");
 const leatherboardScreener = require("./botLogick/screenAllLeatherboardLikeShit");
+const whiteBlackListSeparator = require("./botLogick/rateWorksBasedOnWhiteAndBlackLists");
 let mainWindow = '';
 let jerryRollEngine = null;
 let poryGatterEngine = null;
 let screenerEngine = null;
+let unfairVoteEngine = null;
 
 const consoleNodeClear = () => {
     mainWindow.webContents.send("log", {type: "clear"});
@@ -46,6 +48,12 @@ function createWindow() {
         screenerEngine = new leatherboardScreener(mainWindow);
     } catch (createError) {
         consoleNodeLog(`screenerEngine engine creation error ${createError}`);
+    }
+
+    try {
+        unfairVoteEngine = new whiteBlackListSeparator(mainWindow);
+    } catch (createError) {
+        consoleNodeLog(`unfairVoteEngine engine creation error ${createError}`);
     }
 }
 
@@ -166,6 +174,14 @@ app.whenReady().then(() => {
 
     app.on('activate', function () {
         if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    })
+
+    globalShortcut.register('Shift+1', () => {
+        unfairVoteEngine.manualFindSearchRegion()
+    });
+
+    globalShortcut.register('Shift+2', () => {
+        unfairVoteEngine.getDotInfo()
     })
 })
 

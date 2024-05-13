@@ -1,8 +1,10 @@
-const {mouse, screen, straightTo, centerOf, left, right, up, down, Region, FileType } = require("@nut-tree/nut-js");
+const {mouse, screen, straightTo, centerOf, left, right, up, down, Region, FileType, imageResource } = require("@nut-tree/nut-js");
 const {screen: electronScreen } = require('electron')
 const repeatPromiseUntilResolved = require('repeat-promise-until-resolved');
 const { createWorker } = require('tesseract.js');
 const excelWriter = require('excel4node');
+const fs = require('fs')
+require("@nut-tree/template-matcher");
 
 class leatherboardScreener {
     constructor(window) {
@@ -12,14 +14,23 @@ class leatherboardScreener {
         screen.config.highlightDurationMs = 1000;
         mouse.config.mouseSpeed = 1000;
 
-        this.firstPlaceDickPickArea = new Region(40, 130, 150, 150);
-        this.secondPlaceDickPickArea = new Region(40, 130, 150, 150);
-
-        this.firstPlaceScoreScreenRegion = new Region(40, 130, 150, 150);
-        this.secondPlaceScoreScreenRegion = new Region(330, 710, 40, 40);
-
-        this.firstPlaceScoreSearchRegion = new Region(40, 130, 150, 150);
-        this.secondPlaceScoreSearchRegion = new Region(330, 710, 40, 40);
+        this.zones = {
+            firstPlace: {
+                name: new Region(40, 130, 150, 150),
+                score: new Region(40, 130, 150, 150),
+                scoreInPopUp: new Region(40, 130, 150, 150),
+            },
+            secondPlace: {
+                name: new Region(40, 130, 150, 150),
+                score: new Region(40, 130, 150, 150),
+                scoreInPopUp: new Region(40, 130, 150, 150),
+            },
+            thirdPlace: {
+                name: new Region(40, 130, 150, 150),
+                score: new Region(40, 130, 150, 150),
+                scoreInPopUp: new Region(40, 130, 150, 150),
+            },
+        }
 
         this.refreshButtonClickRegion =  new Region(330, 710, 40, 40);
 
@@ -38,7 +49,7 @@ class leatherboardScreener {
         this.isRolling = false;
         this.stopFlagSet = false;
         this.logFolder = screen.config.resourceDirectory;
-        this.guildNamesList = ["sleepless", "lotus"];
+        this.guildNamesList = ["Challe"];
     }
 
     setLogFolder = (newLogFolder => {
@@ -100,15 +111,15 @@ class leatherboardScreener {
                 place: 1,
                 changesAmount: 0,
                 lastAttemptResult:"",
-                attemptWorkSheet:this.excelLogWorkBook.addWorksheet(`${guildName}Results`),
-                resultWorkSheet:this.excelLogWorkBook.addWorksheet(`${guildName}Atttempts`),
+                //attemptWorkSheet:this.excelLogWorkBook.addWorksheet(`${guildName}Attempts`),
+                resultWorkSheet:this.excelLogWorkBook.addWorksheet(`${guildName}Results`),
             }
 
-            guildData.attemptWorkSheet.cell(1, 1).string("Attempt");
+            /*guildData.attemptWorkSheet.cell(1, 1).string("Attempt");
             guildData.attemptWorkSheet.cell(1, 2).string("Result number");
             guildData.attemptWorkSheet.cell(1, 3).string("Result image");
             guildData.attemptWorkSheet.cell(1, 4).string("Example number");
-            guildData.attemptWorkSheet.cell(1, 5).string("Example image");
+            guildData.attemptWorkSheet.cell(1, 5).string("Example image");*/
 
             guildData.resultWorkSheet.cell(1, 1).string('Place');
             guildData.resultWorkSheet.cell(1, 2).string('New result');
@@ -119,7 +130,8 @@ class leatherboardScreener {
 
         try {
             this.teseractWorker = await createWorker({
-                langPath: `./langData`,
+                corePath: "../node_modules/tesseract.js-core/",
+                langPath: `./resources/app/botLogick/langData`,
                 logger: m => console.log(m),
                 gzip: false,
                 workerBlobURL: false
@@ -127,7 +139,7 @@ class leatherboardScreener {
             /*this.teseractWorker = await createWorker({
                 workerPath: "./node_modules/tesseract.js/dist/worker.min.js",
                 // Unlike when used in a browser, corePath and langPath are resolved relative the worker using Electron.
-                corePath: "./node_modules/tesseract.js-core/",
+                corePath: "../node_modules/tesseract.js-core/",
                 langPath: "./lang-data",
                 logger: m => console.log(m),
                 // Disable gzip since the eng.traineddata file we are using is already uncompressed
@@ -182,29 +194,74 @@ class leatherboardScreener {
         }
     }
 
+    getDetailedScoreRegionByPlace = (guildPlace) => {
+        switch (guildPlace) {
+            case 1: return this.zones.firstPlace.scoreInPopUp
+            case 2: return this.zones.secondPlace.scoreInPopUp
+            case 3: return this.zones.thirdPlace.scoreInPopUp
+        }
+    }
+
+    getScoreRegionByPlace = (guildPlace) => {
+        switch (guildPlace) {
+            case 1: return this.zones.firstPlace.score
+            case 2: return this.zones.secondPlace.score
+            case 3: return this.zones.thirdPlace.score
+        }
+    }
+
     checkGuildPlace = async (guildData) => {
         try {
-            await screen.find(`${guildData.name}DickPick.png`, {searchRegion: this.firstPlaceDickPickArea});
+            await screen.captureRegion(`checkGuildPlace_${guildData.name}`, this.zones.firstPlace.name, ".png", screen.config.resourceDirectory);
+            const { data: { text : firstPlaceNameText } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/checkGuildPlace_${guildData.name}.png`);
+            await fs.unlink(`./resources/app/botLogick/temporaryAssets/checkGuildPlace_${guildData.name}.png`, () => {});
+            if (!firstPlaceNameText.includes(guildData.name)) {
+                throw new Error(`${guildData.name} not first found ${firstPlaceNameText} instead`);
+            }
+
             this.consoleNodeLog(`${guildData.name} is first`);
             guildData.place = 1;
         } catch (error) {
-            this.consoleNodeLog(`${guildData.name} not first`);
+            this.consoleNodeLog(`${guildData.name} not first ${error}`);
             try {
-                await screen.find(`${guildData.name}DickPick.png`, {searchRegion: this.secondPlaceDickPickArea});
+                await screen.captureRegion(`checkGuildPlace_${guildData.name}`, this.zones.secondPlace.name, ".png", screen.config.resourceDirectory);
+                const { data: { text : secondPlaceNameText } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/checkGuildPlace_${guildData.name}.png`);
+                await fs.unlink(`./resources/app/botLogick/temporaryAssets/checkGuildPlace_${guildData.name}.png`, () => {});
+                if (!secondPlaceNameText.includes(guildData.name)) {
+                    throw new Error(`${guildData.name} not second found ${secondPlaceNameText} instead`);
+                }
+
                 this.consoleNodeLog(`${guildData.name} is second`);
                 guildData.place = 2;
             } catch (error) {
-                this.consoleNodeLog(`Where is ${guildData.name}?`);
-                throw new Error(`${guildData.name} fucking lost`);
+                this.consoleNodeLog(`${guildData.name} not second`);
+                try {
+                    await screen.captureRegion(`checkGuildPlace_${guildData.name}`, this.zones.thirdPlace.name, ".png", screen.config.resourceDirectory);
+                    const { data: { text : thirdPlaceNameText } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/checkGuildPlace_${guildData.name}.png`);
+                    await fs.unlink(`./resources/app/botLogick/temporaryAssets/checkGuildPlace_${guildData.name}.png`, () => {});
+                    if (!thirdPlaceNameText.includes(guildData.name)) {
+                        throw new Error(`${guildData.name} not third found ${thirdPlaceNameText} instead`);
+                    }
+
+                    this.consoleNodeLog(`${guildData.name} is third`);
+                    guildData.place = 3;
+                } catch (error) {
+                    this.consoleNodeLog(`Where is ${guildData.name}?`);
+                    throw new Error(`${guildData.name} fucking lost ${error}`);
+                }
             }
         }
     }
 
     checkGuildState = async (guildData) => {
-        await screen.captureRegion(`${guildData.name}_comparedScore_${this.attemptNumber}`, guildData.place === 1 ? this.firstPlaceScoreScreenRegion : this.secondPlaceScoreScreenRegion, ".png", screen.config.resourceDirectory);
-        const { data: { text : currentValue } } = await this.teseractWorker.recognize(`./botLogick/temporaryAssets/${guildData.name}_comparedScore_${this.attemptNumber}.png`);
+        await this.clickOn(this.getScoreRegionByPlace(guildData.place));
+        await this.sleep(1000);
+        await screen.captureRegion(`checkGuildScore_${guildData.name}`, this.getDetailedScoreRegionByPlace(guildData.place), ".png", screen.config.resourceDirectory);
+        const { data: { text : currentValue } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/checkGuildScore_${guildData.name}.png`);
+        await fs.unlink(`./resources/app/botLogick/temporaryAssets/checkGuildScore_${guildData.name}.png`, () => {});
 
-        guildData.attemptWorkSheet.cell(this.attemptNumber + 2, 1).number(this.attemptNumber);
+
+        /*guildData.attemptWorkSheet.cell(this.attemptNumber + 2, 1).number(this.attemptNumber);
         guildData.attemptWorkSheet.cell(this.attemptNumber + 2, 2).string(currentValue);
         guildData.attemptWorkSheet.addImage({
             path: `./botLogick/temporaryAssets/${guildData.name}_comparedScore_${this.attemptNumber}.png`,
@@ -232,33 +289,18 @@ class leatherboardScreener {
                     rowOff: 0,
                 },
             },
-        });
+        });*/
 
-        try {
-            await screen.find(`${guildData.name}_previousScore_${guildData.changesAmount}.png`, {searchRegion: guildData.place === 1 ? this.firstPlaceScoreSearchRegion : this.secondPlaceScoreSearchRegion});
-            if (guildData.lastAttemptResult !== currentValue) throw new Error("");
-            this.consoleNodeLog(`${guildData.name} score is same ${guildData.lastAttemptResult} vs ${currentValue}`);
-            this.consoleNodeLog("Compared");
-            this.consoleNodeImage(`botLogick/temporaryAssets/${guildData.name}_comparedScore_${this.attemptNumber}.png`);
-            this.consoleNodeLog("with");
-            this.consoleNodeImage(`botLogick/temporaryAssets/${guildData.name}_previousScore_${guildData.changesAmount}.png`);
-        } catch (error) {
-            this.consoleNodeLog(`${guildData.name} score is new ${guildData.lastAttemptResult} vs ${currentValue}`);
-            this.consoleNodeImage(`botLogick/temporaryAssets/${guildData.name}_comparedScore_${this.attemptNumber}.png`);
-            this.consoleNodeLog("with");
-            this.consoleNodeImage(`botLogick/temporaryAssets/${guildData.name}_previousScore_${guildData.changesAmount}.png`);
+        this.consoleNodeLog(`Compare ${guildData.lastAttemptResult} with ${currentValue}`);
+        if (guildData.lastAttemptResult !== currentValue) {
             guildData.changesAmount = guildData.changesAmount + 1;
             guildData.lastAttemptResult = currentValue;
-            await screen.captureRegion(`${guildData.name}_previousScore_${guildData.changesAmount}`, guildData.place === 1 ? this.firstPlaceScoreScreenRegion : this.secondPlaceScoreScreenRegion, ".png", screen.config.resourceDirectory);
-            const { data: { text } } = await this.teseractWorker.recognize(`./botLogick/temporaryAssets/${guildData.name}_previousScore_${guildData.changesAmount}.png`);
-
             guildData.resultWorkSheet.cell(guildData.changesAmount + 2, 1).number(guildData.place);
-            guildData.resultWorkSheet.cell(guildData.changesAmount + 2, 2).string(text);
+            guildData.resultWorkSheet.cell(guildData.changesAmount + 2, 2).string(currentValue);
             guildData.resultWorkSheet.cell(guildData.changesAmount + 2, 3).string((new Date()).toString());
-
-            this.consoleNodeLog(`Numbers is ${text}`);
-            await screen.captureRegion(`${guildData.name}_change_${guildData.changesAmount}`, this.proposedPlayerRegion, ".png", this.logFolder);
-        }
+        };
+        await this.clickOn(this.getScoreRegionByPlace(guildData.place));
+        await this.sleep(1000);
     };
 
     rollJerry = async () => {
@@ -270,10 +312,10 @@ class leatherboardScreener {
         }));*/
 
         await this.checkGuildPlace(this.guildsList[0]);
-        await this.checkGuildPlace(this.guildsList[1]);
+        /*await this.checkGuildPlace(this.guildsList[1]);*/
 
         await this.checkGuildState(this.guildsList[0]);
-        await this.checkGuildState(this.guildsList[1]);
+        /*await this.checkGuildState(this.guildsList[1]);*/
 
         await this.clickOn(this.refreshButtonClickRegion);
         this.consoleNodeLog("Sleep");
@@ -289,25 +331,42 @@ class leatherboardScreener {
         let logo = null;
 
         try {
-            logo = await centerOf(screen.find(`Nox.png`));
+            logo = await centerOf(screen.find(imageResource(`Nox.png`)));
         } catch (logoError) {
-            this.consoleNodeLog("slls failed to find nox logo");
+            this.consoleNodeLog(`failed to find nox logo ${logoError}`);
         }
 
         this.proposedPlayerRegion = new Region(logo.x-20/proposedDPI, logo.y+17/proposedDPI, 540/proposedDPI, 960/proposedDPI);
-        this.firstPlaceDickPickArea = new Region(logo.x+215/proposedDPI, logo.y+260/proposedDPI, 80/proposedDPI, 80/proposedDPI);
-        this.secondPlaceDickPickArea = new Region(logo.x+70/proposedDPI, logo.y+295/proposedDPI, 80/proposedDPI, 80/proposedDPI);
-        this.firstPlaceScoreScreenRegion = new Region(logo.x+205/proposedDPI, logo.y+504/proposedDPI, 80/proposedDPI, 22/proposedDPI);
-        this.secondPlaceScoreScreenRegion = new Region(logo.x+63/proposedDPI, logo.y+512/proposedDPI, 80/proposedDPI, 22/proposedDPI);
-        this.firstPlaceScoreSearchRegion = new Region(logo.x+195/proposedDPI, logo.y+495/proposedDPI, 100/proposedDPI, 40/proposedDPI);
-        this.secondPlaceScoreSearchRegion = new Region(logo.x+55/proposedDPI, logo.y+505/proposedDPI, 100/proposedDPI, 40/proposedDPI);
+
+        this.zones = {
+            firstPlace: {
+                name: new Region(logo.x+175/proposedDPI, logo.y+370/proposedDPI, 135/proposedDPI, 30/proposedDPI),
+                score: new Region(logo.x+205/proposedDPI, logo.y+504/proposedDPI, 80/proposedDPI, 22/proposedDPI),
+                scoreInPopUp: new Region(logo.x+305/proposedDPI, logo.y+607/proposedDPI, 80/proposedDPI, 22/proposedDPI),
+            },
+            secondPlace: {
+                name: new Region(logo.x+40/proposedDPI, logo.y+395/proposedDPI, 120/proposedDPI, 22/proposedDPI),
+                score: new Region(logo.x+64/proposedDPI, logo.y+515/proposedDPI, 80/proposedDPI, 22/proposedDPI),
+                scoreInPopUp: new Region(logo.x+158/proposedDPI, logo.y+613/proposedDPI, 80/proposedDPI, 22/proposedDPI),
+            },
+            thirdPlace: {
+                name: new Region(logo.x+330/proposedDPI, logo.y+412/proposedDPI, 120/proposedDPI, 22/proposedDPI),
+                score: new Region(logo.x+350/proposedDPI, logo.y+505/proposedDPI, 80/proposedDPI, 22/proposedDPI),
+                scoreInPopUp: new Region(logo.x+403/proposedDPI, logo.y+611/proposedDPI, 80/proposedDPI, 22/proposedDPI),
+            },
+        }
+
+
         this.refreshButtonClickRegion = new Region(logo.x+5/proposedDPI, logo.y+175/proposedDPI, 30/proposedDPI, 30/proposedDPI);
 
         await screen.highlight(this.proposedPlayerRegion);
-        await screen.highlight(this.firstPlaceDickPickArea);
-        await screen.highlight(this.secondPlaceDickPickArea);
-        await screen.highlight(this.firstPlaceScoreSearchRegion);
-        await screen.highlight(this.secondPlaceScoreSearchRegion);
+        for (let placeKey in this.zones) {
+            for (let itemKey in this.zones[placeKey]) {
+                this.consoleNodeLog(`this is ${placeKey} ${itemKey}`);
+                await screen.highlight(this.zones[placeKey][itemKey]);
+            }
+        }
+
         await screen.highlight(this.refreshButtonClickRegion);
 
         return true;

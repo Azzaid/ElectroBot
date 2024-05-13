@@ -47,6 +47,26 @@ searchTarget3.onchange = (event) => {
     ipcRenderer.send("control", {type:"searchTarget", payload: {index:2, value:event.target.value}});
 }
 
+
+const testWB = document.getElementById('testWB');
+testWB.onclick = () => {
+    ipcRenderer.send("control", "testWB");
+    ipcRenderer.send("eye", "open");
+}
+
+const startWB = document.getElementById('startWB');
+startWB.onclick = () => {
+    ipcRenderer.send("control", "startWB");
+    ipcRenderer.send("eye", "open");
+}
+
+const stopWB = document.getElementById('stopWB');
+stopWB.onclick = () => {
+    ipcRenderer.send("control", "stopWB");
+    ipcRenderer.send("eye", "wander");
+}
+
+
 const test = document.getElementById('test');
 test.onclick = () => {
     ipcRenderer.send("control", "test");
@@ -157,3 +177,9 @@ document.getElementById("instructionHeader2").addEventListener("click",
       document.getElementById("instructionWrapper2").classList.toggle("expanded")
   }
 )
+
+document.getElementById("instructionHeader3").addEventListener("click",
+    () => {
+        console.log("run expanded");
+        document.getElementById("instructionWrapper3").classList.toggle("expanded")
+    })
