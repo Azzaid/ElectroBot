@@ -41,8 +41,9 @@
             <td>
               1.
             </td>
-            <td>
+            <td colspan="2">
               Install Nox android emulator (We're switched cause of blueStack screen size issues)
+              From <a href="https://en.bignox.com/">https://en.bignox.com/</a>
             </td>
             <td>
             </td>
@@ -55,13 +56,83 @@
               Open Nox instance with 540X960 in perfomance settings tab and fix window size in display settings tab.
             </td>
             <td>
+              <img src="./assets/properConfig.png" width="600">
+            </td>
+          </tr>
+          <tr>
+            <td>
+              3.
+            </td>
+            <td colspan="2">
+              Open time princess "game"
+            </td>
+            <td>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              4.
+            </td>
+            <td>
+              Move mouse cursor somewhere into top left corner of game screen. Close to corner - faster it will detect player position. But cursor should be inside game screen.
+            </td>
+            <td>
+              <img src="./assets/closeToCorner.png" width="600">
+            </td>
+          </tr>
+          <tr>
+            <td>
+              5.
+            </td>
+            <td>
+              Click "Shift+1". Could be inconvenient. Yes my hands are twice as big as yours.
+              After some time bot should highlight game screen. Check if it is highlighted as expected. Or nothing else will work.
+            </td>
+            <td>
+              <img src="./assets/properlyHighlightedScreen.png" width="600">
+            </td>
+          </tr>
+          <tr>
+            <td>
+              6.
+            </td>
+            <td colspan="2">
+              Are you sure it was highlighted as expected?<br>
+              If red square shifted - your mouse cursor was out of expected place. Move it and try hitting "Shift+1" again.<br>
+              If red square too big or too small - you screen size is incorrect. Go back to pt 2.
+            </td>
+            <td>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              7.
+            </td>
+            <td colspan="2">
+              Go to login screen
+            </td>
+          </tr>
+          <tr>
+            <td>
+              8.
+            </td>
+            <td>
+              Fill in login/password pairs for all accounts you want to vote from<br>
+              Use + button to add new input fields and - to remove.
+            </td>
+            <td>
+              <div id="voteCredencialsHolder">
+              </div>
+              <br/>
+              <button id="addVoteCredentials">+</button>
+              <button id="removeVoteCredentials">-</button>
             </td>
           </tr>
           </tbody>
         </table>
       </div>
       <div class="buttons_holder">
-        <button id="testWB" class="button testButton">Test</button>
+        <button id="testWB" class="button testButton">Test login</button>
         <button id="startWB" class="button startButton">Start</button>
         <button id="stopWB" class="button stopButton">Stop</button>
       </div>

@@ -66,6 +66,49 @@ ipcMain.on("main", (event, args) => {
         app.quit();
     }
 });
+ipcMain.on("voterControl", (event, args) => {
+    console.log('voter control channel', args);
+    consoleNodeLog(`voter control channel ${args.type} command received`);
+    switch (args.type) {
+        case "testWB": {
+            try {
+                unfairVoteEngine.massSendMessages(args.payload);
+            } catch (error) {
+                consoleNodeLog(`unfair vote engine error ${error}`);
+            }
+            return true;
+        }
+        case "addAccount": {
+            try {
+                unfairVoteEngine.addAccount(args.payload);
+            } catch (error) {
+                consoleNodeLog(`unfair vote engine error ${error}`);
+            }
+            return true;
+        }
+        case "editAccount": {
+            try {
+                unfairVoteEngine.editAccount(args.payload);
+            } catch (error) {
+                consoleNodeLog(`unfair vote engine error ${error}`);
+            }
+            return true;
+        }
+        case "removeAccount": {
+            try {
+                unfairVoteEngine.removeAccount();
+            } catch (error) {
+                consoleNodeLog(`unfair vote engine error ${error}`);
+            }
+            return true;
+        }
+        default: {
+            consoleNodeLog(`unfair vote unhandled command ${args.type}`);
+            return true;
+        }
+    }
+});
+
 
 ipcMain.on("control", (event, args) => {
     console.log('control channel', args);
@@ -176,12 +219,16 @@ app.whenReady().then(() => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow()
     })
 
-    globalShortcut.register('Shift+1', () => {
+    globalShortcut.register('{', () => {
         unfairVoteEngine.manualFindSearchRegion()
     });
 
-    globalShortcut.register('Shift+2', () => {
+    globalShortcut.register('}', () => {
         unfairVoteEngine.getDotInfo()
+    })
+
+    globalShortcut.register('Shift+3', () => {
+        unfairVoteEngine.getCorner()
     })
 })
 

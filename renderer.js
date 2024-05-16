@@ -1,5 +1,7 @@
 const {ipcRenderer, ipcMain, app} = require("electron");
 const goals = require("./botLogick/constants/goals");
+const addLoginPasswordInputPair = require("./botLogick/utils/renderer/addLoginPasswordInputPair");
+const removeLoginPasswordInputPair = require("./botLogick/utils/renderer/removeLoginPasswordPair");
 
 const totalsHolder = document.getElementById('totals');
 let totalsObj = {};
@@ -46,26 +48,6 @@ const searchTarget3 = document.getElementById("searchTarget3");
 searchTarget3.onchange = (event) => {
     ipcRenderer.send("control", {type:"searchTarget", payload: {index:2, value:event.target.value}});
 }
-
-
-const testWB = document.getElementById('testWB');
-testWB.onclick = () => {
-    ipcRenderer.send("control", "testWB");
-    ipcRenderer.send("eye", "open");
-}
-
-const startWB = document.getElementById('startWB');
-startWB.onclick = () => {
-    ipcRenderer.send("control", "startWB");
-    ipcRenderer.send("eye", "open");
-}
-
-const stopWB = document.getElementById('stopWB');
-stopWB.onclick = () => {
-    ipcRenderer.send("control", "stopWB");
-    ipcRenderer.send("eye", "wander");
-}
-
 
 const test = document.getElementById('test');
 test.onclick = () => {
@@ -162,6 +144,53 @@ ipcRenderer.on("log", (event, args) => {
     if (args.type === "updateTotals") {
         totalsObj = {...totalsObj, ...args.payload};
         updateTotals();
+    }
+});
+
+const testWB = document.getElementById('testWB');
+testWB.onclick = () => {
+    ipcRenderer.send("voterControl", {type: "testWB"});
+    ipcRenderer.send("eye", "open");
+}
+
+const startWB = document.getElementById('startWB');
+startWB.onclick = () => {
+    ipcRenderer.send("voterControl", {type: "startWB"});
+    ipcRenderer.send("eye", "open");
+}
+
+const stopWB = document.getElementById('stopWB');
+stopWB.onclick = () => {
+    ipcRenderer.send("voterControl", {type: "stopWB"});
+    ipcRenderer.send("eye", "wander");
+}
+
+const addVoteCredentials = document.getElementById('addVoteCredentials');
+addVoteCredentials.onclick = () => {
+    ipcRenderer.send("voterControl", {type: "addAccount"});
+}
+
+const removeVoteCredentials = document.getElementById('removeVoteCredentials');
+removeVoteCredentials.onclick = () => {
+    ipcRenderer.send("voterControl", {type: "removeAccount"});
+}
+
+ipcRenderer.on("voterControl", (event, args) => {
+    console.log('voterControl channel', args);
+    consoleNodeLog(`voter control chanel in renderer ${args.type}`);
+    switch (args.type) {
+        case "rendererAddAccount": {
+            addLoginPasswordInputPair.call(this, args.payload.index);
+            return true;
+        }
+        case "rendererRemoveAccount": {
+            removeLoginPasswordInputPair.call(this, args.payload.index);
+            return true;
+        }
+        default: {
+            consoleNodeLog(`unfair vote unhandled command ${args.type}`);
+            return true;
+        }
     }
 });
 
