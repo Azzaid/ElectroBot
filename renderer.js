@@ -175,6 +175,38 @@ removeVoteCredentials.onclick = () => {
     ipcRenderer.send("voterControl", {type: "removeAccount"});
 }
 
+//setBlack/white list and name for left work
+document.getElementById('toggleLeftBlack').onchange = () => {
+    ipcRenderer.send("voterControl", {type: "setWorkDecision", payload: {work: "left", fieldName: "list", value: "black"}});
+}
+document.getElementById('toggleLeftZero').onchange = () => {
+    ipcRenderer.send("voterControl", {type: "setWorkDecision", payload: {work: "left", fieldName: "list", value: ""}});
+}
+document.getElementById('toggleLeftWhite').onchange = () => {
+    ipcRenderer.send("voterControl", {type: "setWorkDecision", payload: {work: "left", fieldName: "list", value: "white"}});
+}
+document.getElementById('leftWorkName').onchange = (event) => {
+    ipcRenderer.send("voterControl", {type: "setWorkDecision", payload: {work: "left", fieldName: "name", value: event.target.value}});
+}
+
+//setBlack/white list and name for right work
+document.getElementById('toggleRightBlack').onchange = () => {
+    ipcRenderer.send("voterControl", {type: "setWorkDecision", payload: {work: "right", fieldName: "list", value: "black"}});
+}
+document.getElementById('toggleRightZero').onchange = () => {
+    ipcRenderer.send("voterControl", {type: "setWorkDecision", payload: {work: "right", fieldName: "list", value: ""}});
+}
+document.getElementById('toggleRightWhite').onchange = () => {
+    ipcRenderer.send("voterControl", {type: "setWorkDecision", payload: {work: "right", fieldName: "list", value: "white"}});
+}
+document.getElementById('rightWorkName').onchange = (event) => {
+    ipcRenderer.send("voterControl", {type: "setWorkDecision", payload: {work: "right", fieldName: "name", value: event.target.value}});
+}
+
+document.getElementById('submitDecision').onclick = (event) => {
+    ipcRenderer.send("voterControl", {type: "submitDecision"});
+}
+
 ipcRenderer.on("voterControl", (event, args) => {
     console.log('voterControl channel', args);
     consoleNodeLog(`voter control chanel in renderer ${args.type}`);
@@ -186,6 +218,16 @@ ipcRenderer.on("voterControl", (event, args) => {
         case "rendererRemoveAccount": {
             removeLoginPasswordInputPair.call(this, args.payload.index);
             return true;
+        }
+        case "rendererResetWorkDecisionState": {
+            document.getElementById('toggleRightZero').checked = true;
+            document.getElementById('toggleLeftZero').checked = true;
+            document.getElementById('rightWorkName').value = "";
+            document.getElementById('leftWorkName').value = "";
+        }
+        case "renderedCloseInstructionsDropdown": {
+            document.getElementById("instructionWrapper3").classList.remove("expanded");
+            return true
         }
         default: {
             consoleNodeLog(`unfair vote unhandled command ${args.type}`);

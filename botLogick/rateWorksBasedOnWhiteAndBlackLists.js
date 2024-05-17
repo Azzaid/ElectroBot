@@ -8,6 +8,7 @@ require("@nut-tree/template-matcher");
 const getExactCornerCoords = require("./utils/getExactCornerCoords");
 const coordHelper = require("./utils/relativeCoordsHelper");
 const isSameColourDot = require("./utils/isSameColourDot");
+const { MongoClient, ServerApiVersion } = require('mongodb');
 
 class whiteBlackListSeparator {
     constructor(window) {
@@ -31,6 +32,13 @@ class whiteBlackListSeparator {
             this.electronWindow.webContents.send("log", {type: "addImage", payload: imageUrl});
         }
 
+        const uri = "mongodb+srv://johanasazzaid:UJdfaaCS5NjAPKGB@tpcwhiteblacklist.fsgf4va.mongodb.net/?retryWrites=true&w=majority&appName=TPCWhiteBlackList";
+        this.mongoClient = new MongoClient(uri, {
+            serverApi: {
+                version: ServerApiVersion.v1,
+            }
+        });
+
         //current process state
         this.isRolling = false;
         this.stopFlagSet = false;
@@ -39,13 +47,15 @@ class whiteBlackListSeparator {
         this.currentCharacterIndex= 0;
         this.needToChangeAccount = false;
 
-
         this.zeroCoords = {x: 0, y: 0};
 
         this.leftTopCornerOfWorkPreview = {x: 154, y: 201};
         this.bottomRightCornerOfWorkPreview = {x: 406, y: 869}
 
         this.accountsForVote = [{email: "valekonova@gmail.com", password: "Vale1111"}];
+
+        this.userDecisionMade = false;
+        this.userDecision = {};
 
         this.screensList = {
             firstLoginScreen: [
@@ -479,13 +489,67 @@ class whiteBlackListSeparator {
         throw new Error("and again");
     }
 
+    setWorkDecision = (payload) => {
+        if (!this.userDecision[payload.work]) this.userDecision[payload.work] = {};
+        this.userDecision[payload.work][payload.fieldName] = payload.value;
+    }
+
+    submitDecision = () => {
+        this.userDecisionMade = true;
+        this.electronWindow.webContents.send("voterControl", {type: "rendererResetWorkDecisionState"});
+    }
 
     waitForUserInput = async (waitTime=15000) => {
         let waitStartTime = Date.now();
-        while (!this.userDecision && Date.now()-waitStartTime < waitTime) {
+        while (!this.userDecisionMade && Date.now()-waitStartTime < waitTime) {
             await this.sleep(1000);
         }
         return true
+    }
+
+    uploadTestToDB = async () => {
+        this.consoleNodeLog("uploadTestToDB");
+        try {
+            // Connect the client to the server	(optional starting in v4.7)
+            await this.mongoClient.connect();
+
+            // Send a ping to confirm a successful connection
+            const db = this.mongoClient.db("TPCWhiteBlackList");
+            const col = db.collection("testCollection");
+
+            const p = await col.insertOne({workName: "testTestTest", signature: []});
+            this.consoleNodeLog("test data loaded to db");
+
+            col.find({}); // empty query
+        } catch (e) {
+            this.consoleNodeLog(`error ${e}`);
+            console.log("got error", e);
+        } finally {
+
+            // Ensures that the client will close when you finish/error
+            await this.mongoClient.close();
+        }
+    }
+
+    downloadAllWorksFroDB = async () => {
+        this.consoleNodeLog("downloadTestToDB");
+        try {
+            // Connect the client to the server	(optional starting in v4.7)
+            await this.mongoClient.connect();
+
+            // Send a ping to confirm a successful connection
+            const db = this.mongoClient.db("TPCWhiteBlackList");
+            const col = db.collection("testCollection");
+
+            const works = await col.find({}); // empty query
+
+            this.consoleNodeLog(`Got data from DB ${JSON.stringify(works)}`)
+        } catch (e) {
+            this.consoleNodeLog(`error ${e}`);
+        } finally {
+            // Ensures that the client will close when you finish/error
+            await this.mongoClient.close();
+        }
     }
 
 
@@ -643,6 +707,10 @@ class whiteBlackListSeparator {
         screen.config.highlightDurationMs = 2000;
         const proposedDPI = 1;
         this.consoleNodeLog(`DPI check got ${proposedDPI}`);
+
+        await this.uploadTestToDB();
+        this.sleep(2000);
+        await this.downloadAllWorksFroDB();
 
         this.consoleNodeLog("manual search for corner");
         let searchStartPosition = null;

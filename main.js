@@ -29,7 +29,7 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js')
         }
     })
-    mainWindow.setMenu(null);
+    //mainWindow.setMenu(null);
     mainWindow.loadFile(path.join(__dirname, "index.html"))
 
     try {
@@ -97,6 +97,22 @@ ipcMain.on("voterControl", (event, args) => {
         case "removeAccount": {
             try {
                 unfairVoteEngine.removeAccount();
+            } catch (error) {
+                consoleNodeLog(`unfair vote engine error ${error}`);
+            }
+            return true;
+        }
+        case "setWorkDecision": {
+            try {
+                unfairVoteEngine.setWorkDecision(args.payload);
+            } catch (error) {
+                consoleNodeLog(`unfair vote engine error ${error}`);
+            }
+            return true;
+        }
+        case "submitDecision": {
+            try {
+                unfairVoteEngine.submitDecision();
             } catch (error) {
                 consoleNodeLog(`unfair vote engine error ${error}`);
             }

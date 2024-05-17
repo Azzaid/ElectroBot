@@ -19,6 +19,65 @@
         </div>
       </div>
 
+      <div class="voteControlWrapper">
+        <table width="100%">
+          <tr width="100%">
+            <td class="tableControlsHolder">
+              <div class="toggle3-switch">
+                <input type="radio" id="toggleLeftBlack" class=radio1 name="toggleLeft"/>
+                <input type="radio" id="toggleLeftZero" class=radio2 name="toggleLeft" checked/>
+                <input type="radio" id="toggleLeftWhite" class=radio3 name="toggleLeft"/>
+                <div class=topLabelContainer>
+                  <label class=labelTop1 for="toggleLeftBlack">Black</label>
+                  <label class=labelTop2 for="toggleLeftZero">0</label>
+                  <label class=labelTop3 for="toggleLeftWhite">White</label>
+                </div>
+                <span class=sliderContainer>
+                  <label class="label1" for="toggleLeftBlack"></label>
+                  <label class="label2" for="toggleLeftZero"></label>
+                  <label class="label3" for="toggleLeftWhite"></label>
+                  <span class="slider"></span>
+                </span>
+              </div>
+              <input placeholder="name" width="100%" id="leftWorkName">
+            </td>
+            <td class="tableControlsHolder">
+              <img src="./assets/exampleOfHowWoteLooks.png" width="400">
+            </td>
+            <td class="tableControlsHolder">
+              <div class="toggle3-switch">
+                <input type="radio" id="toggleRightBlack" class=radio1 name="toggleRight"/>
+                <input type="radio" id="toggleRightZero" class=radio2 name="toggleRight" checked/>
+                <input type="radio" id="toggleRightWhite" class=radio3 name="toggleRight"/>
+                <div class=topLabelContainer>
+                  <label class=labelTop1 for="toggleRightBlack">Black</label>
+                  <label class=labelTop2 for="toggleRightZero">0</label>
+                  <label class=labelTop3 for="toggleRightWhite">White</label>
+                </div>
+                <span class=sliderContainer>
+                  <label class="label1" for="toggleRightBlack"></label>
+                  <label class="label2" for="toggleRightZero"></label>
+                  <label class="label3" for="toggleRightWhite"></label>
+                  <span class="slider"></span>
+                </span>
+              </div>
+              <input placeholder="name" width="100%" id="rightWorkName">
+            </td>
+          </tr>
+          <tr>
+            <td>
+
+            </td>
+            <td class="tableControlsHolder">
+              <button class="button confirmButton" id="submitDecision">Confirm</button>
+            </td>
+            <td>
+
+            </td>
+          </tr>
+        </table>
+      </div>
+
       <div class="resultsWrapper">
       <div class="resultsLog">
         <div class="console" id="console">

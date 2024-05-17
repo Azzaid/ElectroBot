@@ -20,8 +20,18 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        const db = client.db("TPCWhiteBlackList");
+        const col = db.collection("works");
+
+        const p = await col.insertMany(peopleDocuments);
+        // Find the document
+        const filter = { "name.last": "Turing" };
+        const document = await col.findOne(filter);
+        // Print results
+        console.log("Document found:\n" + JSON.stringify(document));
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+        myColl.find({}); // empty query
     } finally {
         // Ensures that the client will close when you finish/error
         await client.close();

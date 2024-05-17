@@ -10,6 +10,11 @@ body {
     padding: 10px;
 }
 
+.tableControlsHolder {
+    text-align: center;
+    vertical-align: bottom;
+}
+
 .buttons_holder {
     padding: 10px;
     display: flex;
@@ -92,6 +97,16 @@ body {
     cursor: pointer;
     width: 150px;
     height: 50px;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    background-color: green;
+}
+
+.confirmButton {
+    cursor: pointer;
+    width: 100px;
+    height: 40px;
     color: white;
     font-weight: bold;
     font-size: 20px;
@@ -234,6 +249,15 @@ body {
     transition-duration: .1s;
 }
 
+.button.confirmButton {
+    background-image: radial-gradient(circle, rgba(89,13,22,1) 0%, rgba(184,213,249,1) 100%);
+}
+
+.button.confirmButton:hover {
+    box-shadow: rgba(4, 97, 64, 0.7) 0 1px 30px;
+    transition-duration: .1s;
+}
+
 .button.stopButton {
     background-image: linear-gradient(92.88deg, #800000 9.16%, #990000 43.89%, #b30000 64.72%);
 }
@@ -272,4 +296,135 @@ body {
 
 .expandablsdfsdfseHeader:hover {
     background-color: #046140;
+}
+
+
+/*test of 3 position toggle switch*/
+body{
+    font-family: 'Raleway', sans-serif;
+}
+
+.toggle3-switch {
+    margin:auto;
+    position:relative;
+    text-align:center;
+    font-size:25px;
+}
+.radio1,
+.radio2,
+.radio3 {
+    display: none;
+}
+.topLabelContainer{
+    margin:auto;
+}
+.labelTop1,.labelTop2,.labelTop3{
+    width:2em;
+    margin:auto;
+    padding:0 1px 0 1px;
+    display:inline-block;
+    text-align:center;
+}
+.sliderContainer{
+    height: 37px;
+    width: 120px;
+    margin: 2px auto;
+    position: relative;
+    padding: 2px;
+    display: inline-block;
+}
+
+
+.label1,
+.label2,
+.label3 {
+    height: 100%;
+    width: 100%;
+    padding: 2px;
+    border-radius: 7px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgb(200, 200, 200)
+}
+.radio1:checked ~ span .label1,
+.radio1:checked ~ span .label3,
+.radio2:checked ~ span .label1,
+.radio2:checked ~ span .label2,
+.radio3:checked ~ span .label2,
+.radio3:checked ~ span .label3 {
+    display: none;
+}
+.slider {
+    width: 35px;
+    height: 35px;
+    border-radius: 5px;
+    margin: 4px;
+    position: absolute;
+    display: inline-block;
+    pointer-events: none; /*ie fallback may be required */
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color:rgb(100,100,100);
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.radio2:checked ~ span .slider {
+    transform: translateX(42px);
+}
+
+.radio3:checked ~ span .slider {
+    transform: translateX(85px);
+}
+
+.content1{
+    height:4em;
+    width:100%;
+    position:relative;
+    display:block;
+    margin:0 auto;
+    padding:1em;
+    text-align:center;
+    font-size:1.3em;
+    background:beige;
+}
+.content1 p{
+    margin:0;
+}
+.labelTop1,
+.radio1:checked ~ .sliderContainer .slider,
+.radio1:checked ~ .content1{
+    color:rgb(0,0,0);
+}
+.radio1:checked ~ .topLabelContainer .labelTop1{
+    text-shadow: 0 0 1px rgb(255,100,100), 0 0 8px rgb(255,0,0);
+}
+.radio1:checked ~ .sliderContainer .slider{
+    background:rgb(0,0,0);
+}
+.labelTop2,
+.radio2:checked ~ .content1{
+    color:rgb(89,13,22);
+}
+.radio2:checked ~ .topLabelContainer .labelTop2{
+    color:white;
+    text-shadow: 0 0 1px rgb(255,50,255), 0 0 6px rgb(255,0,255);
+}
+.radio2:checked ~ .sliderContainer .slider{
+    background:rgb(89,13,22);
+}
+.labelTop3,
+.radio3:checked ~ .content1{
+    color:rgb(255,255,255);
+}
+.radio3:checked ~ .topLabelContainer .labelTop3{
+    text-shadow: 0 0 1px rgb(100,100,255), 0 0 8px rgb(0,0,255);
+}
+.radio3:checked ~ .sliderContainer .slider{
+    background:rgb(255,255,255);
 }
