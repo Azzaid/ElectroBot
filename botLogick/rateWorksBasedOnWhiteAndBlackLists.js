@@ -9,6 +9,8 @@ const getExactCornerCoords = require("./utils/getExactCornerCoords");
 const coordHelper = require("./utils/relativeCoordsHelper");
 const isSameColourDot = require("./utils/isSameColourDot");
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const searchForWork = require("./utils/searchForWork");
+const getSignature = require("./utils/getSignature");
 
 class whiteBlackListSeparator {
     constructor(window) {
@@ -38,6 +40,7 @@ class whiteBlackListSeparator {
                 version: ServerApiVersion.v1,
             }
         });
+        this.collectionName = "test collection 2";
 
         //current process state
         this.isRolling = false;
@@ -52,10 +55,18 @@ class whiteBlackListSeparator {
         this.leftTopCornerOfWorkPreview = {x: 154, y: 201};
         this.bottomRightCornerOfWorkPreview = {x: 406, y: 869}
 
-        this.accountsForVote = [{email: "valekonova@gmail.com", password: "Vale1111"}];
+        this.topLefCornerOfLeftWorkVote = {x:-6, y: 119};
+        this.bottomRightCornerOfLeftWorkVote = {x: 266, y: 840};
+        this.topLefCornerOfRightWorkVote = {x: 273, y: 119};
+        this.bottomRightCornerOfRightWorkVote = {x:546, y: 840};
+
+        //this.accountsForVote = [{email: "valekonova@gmail.com", password: "Vale1111"}];
+        this.accountsForVote = [];
 
         this.userDecisionMade = false;
         this.userDecision = {};
+        this.skipsAmountLeft = 30;
+        this.votesAmountLeft = 30;
 
         this.screensList = {
             firstLoginScreen: [
@@ -217,7 +228,21 @@ class whiteBlackListSeparator {
                 {position: {x: 41, y: 799}, color: {R:209, G:203, B:197}},
                 {position: {x: 514, y: 813}, color: {R:209, G:203, B:197}},
             ],
-            Norns_selfie: [
+            voteScreen:[
+                {position: {x: 96, y: 115}, color: {R:254, G:251, B:248}},
+                {position: {x: 270, y: 116}, color: {R:254, G:253, B:251}},
+                {position: {x: 268, y: 820}, color: {R:248, G:237, B:156}},
+                {position: {x: 270, y: 530}, color: {R:254, G:252, B:248}},
+                {position: {x: 270, y: 842}, color: {R:252, G:247, B:231}},
+            ],
+            voteScreenWithOverlay: [
+                {position: {x: 35, y: 114}, color: {R:53, G:53, B:53}},
+                {position: {x: 448, y: 116}, color: {R:53, G:52, B:52}},
+                {position: {x: 164, y: 900}, color: {R:50, G:48, B:46}},
+                {position: {x: 406, y: 894}, color: {R:46, G:42, B:38}},
+                {position: {x: 269, y: 176}, color: {R:54, G:54, B:52}},
+            ],
+            /*Norns_selfie: [
                 {position: {x: 387, y: 319}, color: {R:5, G:43, B:46}},
                 {position: {x: 164, y: 383}, color: {R:2, G:0, B:13}},
                 {position: {x: 355, y: 558}, color: {R:1, G:31, B:33}},
@@ -259,7 +284,7 @@ class whiteBlackListSeparator {
                 {position: {x: 295, y: 601}, color: {R:162, G:134, B:146}},
                 {position: {x: 342, y: 894}, color: {R:234, G:208, B:217}},
                 {position: {x: 253, y: 316}, color: {R:151, G:142, B:196}},
-            ],
+            ],*/
             someUnknownScreenWithBackButton: [
                 {position: {x: 7, y: 31}, color: {R:121, G:147, B:196}},
                 {position: {x: 50, y: 35}, color: {R:117, G:130, B:186}},
@@ -297,7 +322,10 @@ class whiteBlackListSeparator {
             confirmButtonOnUploadDataPromptScreen: {x: 369, y: 563},
             backButtonOnDailyLoginScreen: {x: 27, y: 45},
             randomEmptyPlaceOnNewMessageScreen: {x: 277, y: 845},
-            openLetterButtonOnVelkomeBackLetterScreen: {x: 234, y: 572}
+            openLetterButtonOnVelkomeBackLetterScreen: {x: 234, y: 572},
+            voteLeftButtonOnVoteScreen: {x: 130, y: 818},
+            voteRightButtonOnVoteScreen: {x: 410, y: 818},
+            skipButtonOnVoteScreen: {x: 268, y: 877},
         }
     }
 
@@ -472,42 +500,185 @@ class whiteBlackListSeparator {
         }
     }
 
-    massVote = async () => {
-        this.consoleNodeLog("operation started");
-        this.attemptNumber = 0;
+    correctAmountOfVotesAndSkips = async () => {};
 
+    enterVoteScreen = async () => {};
+    leaveVoteScreen = async () => {};
+
+    massVote = async () => {
+        this.electronWindow.webContents.send("eye", "wander");
+        this.consoleNodeClear();
+        this.consoleNodeLog("mass vote started");
+        this.attemptNumber = 0;
+        this.worksList = await this.downloadAllWorksFroDB();
+
+        await this.waitForScreenToLoad(this.screensList.voteScreen);
+        this.skipsAmountLeft = await this.checkSkipsAmount();
+        this.votesAmountLeft = await this.checkVotesAmount();
+
+        while (this.votesAmountLeft && !this.stopFlagSet) {
+            this.consoleNodeLog(`vote once, votes left:${this.votesAmountLeft}, skips left:${this.skipsAmountLeft}`);
+            await this.voteForWorks();
+            await this.waitForScreenToLoad(this.screensList.voteScreen);
+        }
+        this.consoleNodeLog("mass vote ended");
+        this.stopFlagSet = false;
+        this.electronWindow.webContents.send("eye", "stop");
+        return true
     }
 
     voteForWorks = async () => {
         this.consoleNodeLog(`Attempt nr${this.attemptNumber}`);
+        const leftWork = await searchForWork(this.worksList, coordHelper.relativeToAbsolute(this.topLefCornerOfLeftWorkVote, this.zeroCoords));
+        const rightWork = await searchForWork(this.worksList, coordHelper.relativeToAbsolute(this.topLefCornerOfRightWorkVote, this.zeroCoords));
 
-        //const firstWorkIs = await this.checkWork(firstWorkInitialCoords);
+        let leftWorkIs = leftWork[0]?.list;
+        let rightWorkIs = rightWork[0]?.list;
 
-        //const secondWorkIs = await this.checkWork(firstWorkInitialCoords);
+        if (!leftWorkIs && !rightWorkIs) {
+            let {leftWorkDecision, rightWorkDecision} = await this.captureNewWorks();
+            leftWorkIs = leftWorkDecision;
+            rightWorkIs = rightWorkDecision;
+        }
 
-        this.consoleNodeLog("Sleep");
-        throw new Error("and again");
+        this.consoleNodeLog(`Left is ${leftWorkIs}, right is ${rightWorkIs}`);
+        if (leftWorkIs === "white" && rightWorkIs === "white") {
+            if (this.skipsAmountLeft) {
+                await this.skipVote();
+            } else {
+                await this.voteRandom();
+            }
+        } else if (leftWorkIs === "white") {
+            await this.voteLeft();
+        } else if (rightWorkIs === "white") {
+            await this.voteRight();
+        } else if (leftWorkIs === "black" && rightWorkIs === "black") {
+            await this.voteRandom()
+        } else if (leftWorkIs === "black") {
+            await this.voteRight();
+        } else if (rightWorkIs === "black") {
+            await this.voteLeft();
+        } else {
+            if (this.skipsAmountLeft) {
+                await this.skipVote();
+            } else {
+                await this.voteRandom();
+            }
+        }
+
+        return true
+    }
+
+    captureNewWorks = async () => {
+        this.consoleNodeLog("Works not recognized, waiting 30 sec for user to choose");
+        const imageName = `voteFile_${new Date().toJSON().replaceAll(":", "_").slice(0,19)}`;
+        await screen.captureRegion(imageName, new Region(this.zeroCoords.x, this.zeroCoords.y+112, 540, 733), ".png", screen.config.resourceDirectory);
+        this.electronWindow.webContents.send("voterControl", {type: "renderedCloseInstructionsDropdown"});
+        //this.consoleNodeImage(`./resources/app/botLogick/temporaryAssets/${imageName}.png`);
+        this.electronWindow.webContents.send("voterControl", {type: "renderedSetVoteImage", payload:{imageUrl:`./botLogick/temporaryAssets/${imageName}.png`}});
+        await this.waitForUserInput();
+        const leftWorkDecision = this.userDecision?.left?.list;
+        const rightWorkDecision = this.userDecision?.right?.list;
+
+        if (leftWorkDecision) {
+            const workSignature = await getSignature(coordHelper.relativeToAbsolute(this.topLefCornerOfLeftWorkVote, this.zeroCoords), coordHelper.relativeToAbsolute(this.bottomRightCornerOfLeftWorkVote, this.zeroCoords));
+            await this.uploadToDB({
+                name: this.userDecision.left.name,
+                signature: workSignature,
+                list: leftWorkDecision,
+                side: "left",
+                trackingData: `${new Date().toJSON().replaceAll(":", "_").slice(0,19)}_${this.accountsForVote[this.currentAccountIndex]?.email || "oldVersion"}`
+            })
+        }
+
+        if (rightWorkDecision) {
+            const workSignature = await getSignature(coordHelper.relativeToAbsolute(this.topLefCornerOfRightWorkVote, this.zeroCoords), coordHelper.relativeToAbsolute(this.bottomRightCornerOfRightWorkVote, this.zeroCoords));
+            await this.uploadToDB({
+                name: this.userDecision.right.name,
+                signature: workSignature,
+                list: rightWorkDecision,
+                side: "right",
+                trackingData: `${new Date().toJSON().replaceAll(":", "_").slice(0,19)}_${this.accountsForVote[this.currentAccountIndex]?.email || "oldVersion"}`
+            })
+        }
+
+        return {leftWorkDecision, rightWorkDecision}
+    }
+
+    voteRandom = async () => {
+        if (Math.random() > 0.5) {
+            await this.voteLeft();
+        } else {
+            await this.voteRight();
+        }
+        return true
+    }
+
+    voteLeft = async () => {
+        await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.voteLeftButtonOnVoteScreen, this.zeroCoords));
+        this.votesAmountLeft = this.votesAmountLeft - 1;
+        await this.waitForScreenToLoad(this.screensList.voteScreenWithOverlay);
+        await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.randomEmptySpaceOnPlayerRoomWitOverlayScreen, this.zeroCoords));
+        return true
+    }
+
+    voteRight = async () => {
+        await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.voteRightButtonOnVoteScreen, this.zeroCoords));
+        this.votesAmountLeft = this.votesAmountLeft - 1;
+        await this.waitForScreenToLoad(this.screensList.voteScreenWithOverlay);
+        await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.randomEmptySpaceOnPlayerRoomWitOverlayScreen, this.zeroCoords));
+        return true
+    }
+
+    skipVote = async () => {
+        await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.skipButtonOnVoteScreen, this.zeroCoords));
+        this.skipsAmountLeft = this.skipsAmountLeft - 1;
+        return true
+    }
+
+    checkSkipsAmount = async () => {
+        return 30
+    }
+
+    checkVotesAmount = async () => {
+        return 30
+    }
+
+    testImage = async () => {
+        const imageName = `voteFile_${new Date().toJSON().replaceAll(":", "_").slice(0,19)}`;
+        await screen.captureRegion(imageName, new Region(this.zeroCoords.x, this.zeroCoords.y+112, 540, 733), ".png", screen.config.resourceDirectory);
+        //this.consoleNodeImage(`./resources/app/botLogick/temporaryAssets/${imageName}.png`);
+        this.electronWindow.webContents.send("voterControl", {type: "renderedSetVoteImage", payload:{imageUrl:`./botLogick/temporaryAssets/${imageName}.png`}});
+    }
+
+    showDecisionMaker = async () => {
+
     }
 
     setWorkDecision = (payload) => {
+        console.log("update decision");
         if (!this.userDecision[payload.work]) this.userDecision[payload.work] = {};
         this.userDecision[payload.work][payload.fieldName] = payload.value;
     }
 
     submitDecision = () => {
+        console.log("submit decision");
         this.userDecisionMade = true;
         this.electronWindow.webContents.send("voterControl", {type: "rendererResetWorkDecisionState"});
     }
 
-    waitForUserInput = async (waitTime=15000) => {
+    waitForUserInput = async (waitTime=30000) => {
         let waitStartTime = Date.now();
         while (!this.userDecisionMade && Date.now()-waitStartTime < waitTime) {
+            this.electronWindow.webContents.send("voterControl", {type: "rendererUpdateTimer", payload:{time:`Time left: ${Math.floor((waitTime-(Date.now()-waitStartTime))/1000)}`}});
+            console.log("wait tick");
             await this.sleep(1000);
         }
+        if (Date.now()-waitStartTime > waitTime && !this.userDecisionMade) console.log("user decision timeout");
         return true
     }
 
-    uploadTestToDB = async () => {
+    uploadToDB = async (data) => {
         this.consoleNodeLog("uploadTestToDB");
         try {
             // Connect the client to the server	(optional starting in v4.7)
@@ -515,12 +686,10 @@ class whiteBlackListSeparator {
 
             // Send a ping to confirm a successful connection
             const db = this.mongoClient.db("TPCWhiteBlackList");
-            const col = db.collection("testCollection");
+            const col = db.collection(this.collectionName);
 
-            const p = await col.insertOne({workName: "testTestTest", signature: []});
-            this.consoleNodeLog("test data loaded to db");
-
-            col.find({}); // empty query
+            await col.insertOne(data);
+            this.consoleNodeLog("data loaded to db");
         } catch (e) {
             this.consoleNodeLog(`error ${e}`);
             console.log("got error", e);
@@ -533,23 +702,26 @@ class whiteBlackListSeparator {
 
     downloadAllWorksFroDB = async () => {
         this.consoleNodeLog("downloadTestToDB");
+        let works = [];
         try {
             // Connect the client to the server	(optional starting in v4.7)
             await this.mongoClient.connect();
 
             // Send a ping to confirm a successful connection
             const db = this.mongoClient.db("TPCWhiteBlackList");
-            const col = db.collection("testCollection");
+            const col = db.collection(this.collectionName);
 
-            const works = await col.find({}); // empty query
-
-            this.consoleNodeLog(`Got data from DB ${JSON.stringify(works)}`)
+            works = await col.find().toArray(); // empty query
+            this.worksList = works;
+            console.log("retrieved works", works);
         } catch (e) {
             this.consoleNodeLog(`error ${e}`);
         } finally {
             // Ensures that the client will close when you finish/error
             await this.mongoClient.close();
         }
+
+        return works
     }
 
 
@@ -649,6 +821,7 @@ class whiteBlackListSeparator {
 
     getDotInfo = async () => {
         const position = await mouse.getPosition();
+        console.log("dot position", position);
         const relativePOsition = coordHelper.absoluteToRelative(position, this.zeroCoords);
         const color = await screen.colorAt(position);
 
@@ -656,7 +829,17 @@ class whiteBlackListSeparator {
     }
 
     getCorner = async () => {
-        const searchStartPosition = await getExactCornerCoords(await mouse.getPosition(), "bottomRight",  {R:254, G:252, B:249});
+        const searchStartPosition = await getExactCornerCoords(await mouse.getPosition(), "bottomRightLeft",  {R:255, G:253, B:252});
+        this.consoleNodeLog(`{x: ${searchStartPosition.x}, y: ${searchStartPosition.y}},`);
+    }
+
+    getTopMargin = async () => {
+        const searchStartPosition = coordHelper.absoluteToRelative(await getExactCornerCoords(await mouse.getPosition(), "topLeftRight",  {R:255, G:253, B:252}), this.zeroCoords);
+        this.consoleNodeLog(`{x: ${searchStartPosition.x}, y: ${searchStartPosition.y}},`);
+    }
+
+    getBottomMargin = async () => {
+        const searchStartPosition = coordHelper.absoluteToRelative(await getExactCornerCoords(await mouse.getPosition(), "bottomLeftRight",  {R:255, G:253, B:252}), this.zeroCoords);
         this.consoleNodeLog(`{x: ${searchStartPosition.x}, y: ${searchStartPosition.y}},`);
     }
 
@@ -703,14 +886,11 @@ class whiteBlackListSeparator {
     }
 
     manualFindSearchRegion = async () => {
+        this.electronWindow.webContents.send("eye", "open");
         this.consoleNodeClear();
         screen.config.highlightDurationMs = 2000;
         const proposedDPI = 1;
         this.consoleNodeLog(`DPI check got ${proposedDPI}`);
-
-        await this.uploadTestToDB();
-        this.sleep(2000);
-        await this.downloadAllWorksFroDB();
 
         this.consoleNodeLog("manual search for corner");
         let searchStartPosition = null;

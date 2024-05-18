@@ -6,10 +6,10 @@ const getExactCornerCoords = async (startPoint, corner="topLeft", marginColor) =
     const reverseSearch = !marginColor;
     let targetColor = reverseSearch ? await screen.colorAt(new Point(startPoint.x, startPoint.y)) : marginColor;
     const currentCoords = {...startPoint};
-    let topMarginReached = corner.includes("bottom");
-    let leftMarginReached = corner.includes("Right");
-    let bottomMarginReached = corner.includes("top");
-    let rightMarginReached = corner.includes("Left");
+    let topMarginReached = corner.toLowerCase().includes("bottom");
+    let leftMarginReached = corner.toLowerCase().includes("right");
+    let bottomMarginReached = corner.toLowerCase().includes("top");
+    let rightMarginReached = corner.toLowerCase().includes("left");
     console.log("search for", corner, "topMarginReached", topMarginReached, "leftMarginReached", leftMarginReached, "bottomMarginReached", bottomMarginReached, "rightMarginReached", rightMarginReached)
 
     while (!topMarginReached || !bottomMarginReached) {

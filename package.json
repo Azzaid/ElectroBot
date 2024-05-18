@@ -19,7 +19,7 @@
     "@nut-tree/nut-js": "latest",
     "@nut-tree/template-matcher": "^2.0.0",
     "excel4node": "^1.8.2",
-    "mongodb": "6.6",
+    "mongodb": "^5.9.2",
     "repeat-promise-until-resolved": "^1.0.11",
     "tesseract.js": "^4.1.1",
     "tesseract.js-core": "^4.0.4"

@@ -29,7 +29,7 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js')
         }
     })
-    //mainWindow.setMenu(null);
+    mainWindow.setMenu(null);
     mainWindow.loadFile(path.join(__dirname, "index.html"))
 
     try {
@@ -72,7 +72,7 @@ ipcMain.on("voterControl", (event, args) => {
     switch (args.type) {
         case "testWB": {
             try {
-                unfairVoteEngine.massSendMessages(args.payload);
+                unfairVoteEngine.massVote(args.payload);
             } catch (error) {
                 consoleNodeLog(`unfair vote engine error ${error}`);
             }
@@ -236,15 +236,27 @@ app.whenReady().then(() => {
     })
 
     globalShortcut.register('{', () => {
-        unfairVoteEngine.manualFindSearchRegion()
+        unfairVoteEngine.manualFindSearchRegion();
     });
 
     globalShortcut.register('}', () => {
-        unfairVoteEngine.getDotInfo()
+        unfairVoteEngine.getDotInfo();
     })
 
     globalShortcut.register('Shift+3', () => {
-        unfairVoteEngine.getCorner()
+        unfairVoteEngine.getCorner();
+    })
+
+    globalShortcut.register('Shift+4', () => {
+        unfairVoteEngine.getTopMargin();
+    })
+
+    globalShortcut.register('Shift+5', () => {
+        unfairVoteEngine.getBottomMargin();
+    })
+
+    globalShortcut.register('Shift+6', () => {
+        unfairVoteEngine.testImage();
     })
 })
 

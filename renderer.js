@@ -153,7 +153,7 @@ testWB.onclick = () => {
     ipcRenderer.send("eye", "open");
 }
 
-const startWB = document.getElementById('startWB');
+/*const startWB = document.getElementById('startWB');
 startWB.onclick = () => {
     ipcRenderer.send("voterControl", {type: "startWB"});
     ipcRenderer.send("eye", "open");
@@ -163,7 +163,7 @@ const stopWB = document.getElementById('stopWB');
 stopWB.onclick = () => {
     ipcRenderer.send("voterControl", {type: "stopWB"});
     ipcRenderer.send("eye", "wander");
-}
+}*/
 
 const addVoteCredentials = document.getElementById('addVoteCredentials');
 addVoteCredentials.onclick = () => {
@@ -224,9 +224,20 @@ ipcRenderer.on("voterControl", (event, args) => {
             document.getElementById('toggleLeftZero').checked = true;
             document.getElementById('rightWorkName').value = "";
             document.getElementById('leftWorkName').value = "";
+            document.getElementById("voteControlWrapper").classList.remove("expanded");
+            return true
         }
         case "renderedCloseInstructionsDropdown": {
             document.getElementById("instructionWrapper3").classList.remove("expanded");
+            return true
+        }
+        case "renderedSetVoteImage": {
+            document.getElementById("voteControlWrapper").classList.add("expanded");
+            document.getElementById("voteHelpImage").src = args.payload.imageUrl;
+            return true
+        }
+        case "rendererUpdateTimer": {
+            document.getElementById("voterDecisionTimer").innerText = args.payload.time;
             return true
         }
         default: {

@@ -19,8 +19,13 @@
         </div>
       </div>
 
-      <div class="voteControlWrapper">
+      <div id="voteControlWrapper" class="voteControlWrapper hiddenField">
         <table width="100%">
+          <tr width="100%">
+            <td></td>
+            <td class="tableControlsHolder" id="voterDecisionTimer"></td>
+            <td></td>
+          </tr>
           <tr width="100%">
             <td class="tableControlsHolder">
               <div class="toggle3-switch">
@@ -42,7 +47,7 @@
               <input placeholder="name" width="100%" id="leftWorkName">
             </td>
             <td class="tableControlsHolder">
-              <img src="./assets/exampleOfHowWoteLooks.png" width="400">
+              <img width="400" id="voteHelpImage">
             </td>
             <td class="tableControlsHolder">
               <div class="toggle3-switch">
@@ -191,9 +196,9 @@
         </table>
       </div>
       <div class="buttons_holder">
-        <button id="testWB" class="button testButton">Test login</button>
-        <button id="startWB" class="button startButton">Start</button>
-        <button id="stopWB" class="button stopButton">Stop</button>
+        <button id="testWB" class="button testButton">Vote once</button>
+        <!--<button id="startWB" class="button startButton">Start</button>
+        <button id="stopWB" class="button stopButton">Stop</button>-->
       </div>
       <div class="expandableWrapper" id="instructionWrapper1">
         <div class="expandableHeader" id="instructionHeader1">
