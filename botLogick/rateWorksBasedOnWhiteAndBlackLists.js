@@ -64,8 +64,8 @@ class whiteBlackListSeparator {
         this.topLefCornerOfRightWorkVote = {x: 273, y: 119};
         this.bottomRightCornerOfRightWorkVote = {x:546, y: 840};
 
-        this.accountsForVote = [{email: "valekonova@gmail.com", password: "Vale1111"}];
-        //this.accountsForVote = [];
+        //this.accountsForVote = [{email: "valekonova@gmail.com", password: "Vale1111"}];
+        this.accountsForVote = [];
 
         this.userDecisionMade = false;
         this.userDecision = {};
@@ -356,8 +356,8 @@ class whiteBlackListSeparator {
         }
     }
 
-    toggleAutonomousMode = () => {
-        this.autonomousMode = !this.autonomousMode;
+    toggleAutonomousMode = (mode) => {
+        this.autonomousMode = mode !== undefined ? mode : !this.autonomousMode;
         mouse.config.mouseSpeed = this.autonomousMode ? 10000 : 2000;
         keyboard.config.autoDelayMs = this.autonomousMode ? 100 : 500;
     }
@@ -384,7 +384,7 @@ class whiteBlackListSeparator {
             await mouse.move(straightTo(new Point(point.x ,point.y)));
             await mouse.leftClick();
         } else {
-            throw ("Wont click, master sad stop")
+            this.consoleNodeLog("Wont click, master sad stop")
         }
     }
 
@@ -568,6 +568,7 @@ class whiteBlackListSeparator {
     voteFromEveryAccount = async () => {
         this.electronWindow.webContents.send("eye", "wander");
         this.consoleNodeLog("vote from every account started");
+        this.toggleAutonomousMode(true);
 
         if (this.isRolling) {
             this.consoleNodeLog("Process already started");
@@ -610,6 +611,7 @@ class whiteBlackListSeparator {
             }
 
             await this.teseractWorker.terminate();
+            this.toggleAutonomousMode(false);
             this.isRolling = false;
             this.stopFlagSet = false;
         }
@@ -623,7 +625,11 @@ class whiteBlackListSeparator {
     }
 
     voteFromOneAccount = async () => {
-        if (!this.isRolling) {
+        if (this.isRolling) {
+            this.consoleNodeLog("Process already started");
+        } else if (this.zeroCoords.x == 0 && this.zeroCoords.y == 0) {
+            this.consoleNodeLog("Please set initial coordinates first");
+        } else {
             try {
                 this.teseractWorker = await createWorker({
                     corePath: "../node_modules/tesseract.js-core/",
@@ -644,7 +650,6 @@ class whiteBlackListSeparator {
             this.electronWindow.webContents.send("eye", "wander");
             this.consoleNodeClear();
             this.consoleNodeLog("vote started");
-            this.attemptNumber = 0;
 
             this.skipsAmountLeft = await this.checkSkipsAmount();
             this.votesAmountLeft = await this.checkVotesAmount();
@@ -653,6 +658,8 @@ class whiteBlackListSeparator {
                 this.consoleNodeLog(`vote once, votes left:${this.votesAmountLeft}, skips left:${this.skipsAmountLeft}`);
                 await this.voteForWorks();
                 await this.waitForScreenToLoad(this.screensList.voteScreen);
+                this.skipsAmountLeft = await this.checkSkipsAmount();
+                this.votesAmountLeft = await this.checkVotesAmount();
             }
 
             await this.teseractWorker.terminate();
@@ -693,7 +700,7 @@ class whiteBlackListSeparator {
         let leftWorkIs = leftWork[0]?.list;
         let rightWorkIs = rightWork[0]?.list;
 
-        if (!leftWorkIs && !rightWorkIs) {
+        if (!leftWorkIs && !rightWorkIs && !this.autonomousMode) {
             await this.getUserDecision();
             if (this.userDecision?.right?.list || this.userDecision?.left?.list) {
                 let {leftWorkDecision, rightWorkDecision} = await this.captureNewWorks();
@@ -741,6 +748,9 @@ class whiteBlackListSeparator {
         this.electronWindow.webContents.send("voterControl", {type: "renderedCloseInstructionsDropdown"});
         this.electronWindow.webContents.send("voterControl", {type: "renderedSetVoteImage", payload:{imageUrl:`./botLogick/temporaryAssets/${imageName}.png`}});
         await this.waitForUserInput();
+        this.electronWindow.webContents.send("voterControl", {type: "rendererResetWorkDecisionState"});
+
+        return true
     }
 
     captureNewWorks = async () => {
@@ -811,20 +821,66 @@ class whiteBlackListSeparator {
     checkSkipsAmount = async () => {
         if (!this.teseractWorker) return 30
         const imageName = `skipAmountCheck_${new Date().toJSON().replaceAll(":", "_").slice(0,19)}`;
-        await screen.captureRegion(imageName, this.skipsAmountRegion, ".png", screen.config.resourceDirectory);
-        const { data: { text : skipsAmount } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/${imageName}.png`);
-        //const { data: { text : skipsAmount } } = await this.teseractWorker.recognize(`./botLogick/temporaryAssets/${imageName}.png`);
+        await screen.captureRegion(imageName, this.skipsAmountTwoDigitsRegion, ".png", screen.config.resourceDirectory);
+        let { data: { text : skipsAmount } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/${imageName}.png`);
+        //let { data: { text : skipsAmount } } = await this.teseractWorker.recognize(`./botLogick/temporaryAssets/${imageName}.png`);
         this.consoleNodeLog(`Check skips amount, got ${skipsAmount}`);
+        console.log(`Check skips amount, got ${skipsAmount}`);
+        if (isNaN(+skipsAmount)) {
+            const imageName2 = `skipAmountCheck2_${new Date().toJSON().replaceAll(":", "_").slice(0,19)}`;
+            await screen.captureRegion(imageName2, this.skipsAmountSingleDigitRegion, ".png", screen.config.resourceDirectory);
+            let { data: { text : skipsAmount2 } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/${imageName}.png`);
+            //let { data: { text : skipsAmount2 } } = await this.teseractWorker.recognize(`./botLogick/temporaryAssets/${imageName}.png`);
+            if (skipsAmount2.includes("g")) skipsAmount2 = "9";
+            if (skipsAmount2.includes("9")) skipsAmount2 = "9";
+            if (skipsAmount2.includes("8")) skipsAmount2 = "8";
+            if (skipsAmount2.includes("7")) skipsAmount2 = "7";
+            if (skipsAmount2.includes("6")) skipsAmount2 = "6";
+            if (skipsAmount2.includes("5")) skipsAmount2 = "5";
+            if (skipsAmount2.includes("4")) skipsAmount2 = "4";
+            if (skipsAmount2.includes("3")) skipsAmount2 = "3";
+            if (skipsAmount2.includes("2")) skipsAmount2 = "2";
+            if (skipsAmount2.includes("1")) skipsAmount2 = "1";
+            if (skipsAmount2.includes("0")) skipsAmount2 = "0";
+            if (skipsAmount2.includes("o")) skipsAmount2 = "0";
+            if (skipsAmount2.includes("O")) skipsAmount2 = "0";
+            this.consoleNodeLog(`Check skips amount, got ${skipsAmount2}`);
+            console.log(`Check votes amount, got ${skipsAmount2}`);
+            return +skipsAmount2
+        }
         return +skipsAmount
     }
 
     checkVotesAmount = async () => {
         if (!this.teseractWorker) return 30
         const imageName = `voteAmountCheck_${new Date().toJSON().replaceAll(":", "_").slice(0,19)}`;
-        await screen.captureRegion(imageName, this.voteAmountRegion, ".png", screen.config.resourceDirectory);
-        const { data: { text : votesAmount } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/${imageName}.png`);
-        //const { data: { text : votesAmount } } = await this.teseractWorker.recognize(`./botLogick/temporaryAssets/${imageName}.png`);
+        await screen.captureRegion(imageName, this.voteAmountTwoDigitsRegion, ".png", screen.config.resourceDirectory);
+        let { data: { text : votesAmount } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/${imageName}.png`);
+        //let { data: { text : votesAmount } } = await this.teseractWorker.recognize(`./botLogick/temporaryAssets/${imageName}.png`);
         this.consoleNodeLog(`Check votes amount, got ${votesAmount}`);
+        console.log(`Check votes amount, got ${votesAmount}`);
+        if (isNaN(+votesAmount)) {
+            const imageName2 = `skipAmountCheck2_${new Date().toJSON().replaceAll(":", "_").slice(0,19)}`;
+            await screen.captureRegion(imageName2, this.voteAmountSingleDigitRegion, ".png", screen.config.resourceDirectory);
+            let { data: { text : votesAmount2 } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/${imageName}.png`);
+            //let { data: { text : votesAmount2 } } = await this.teseractWorker.recognize(`./botLogick/temporaryAssets/${imageName}.png`);
+            if (votesAmount2.includes("g")) votesAmount2 = "9";
+            if (votesAmount2.includes("9")) votesAmount2 = "9";
+            if (votesAmount2.includes("8")) votesAmount2 = "8";
+            if (votesAmount2.includes("7")) votesAmount2 = "7";
+            if (votesAmount2.includes("6")) votesAmount2 = "6";
+            if (votesAmount2.includes("5")) votesAmount2 = "5";
+            if (votesAmount2.includes("4")) votesAmount2 = "4";
+            if (votesAmount2.includes("3")) votesAmount2 = "3";
+            if (votesAmount2.includes("2")) votesAmount2 = "2";
+            if (votesAmount2.includes("1")) votesAmount2 = "1";
+            if (votesAmount2.includes("0")) votesAmount2 = "0";
+            if (votesAmount2.includes("o")) votesAmount2 = "0";
+            if (votesAmount2.includes("O")) votesAmount2 = "0";
+            this.consoleNodeLog(`Check votes amount, got ${votesAmount2}`);
+            console.log(`Check votes amount, got ${votesAmount2}`);
+            return +votesAmount2
+        }
         return +votesAmount
     }
 
@@ -848,7 +904,6 @@ class whiteBlackListSeparator {
     submitDecision = () => {
         console.log("submit decision");
         this.userDecisionMade = true;
-        this.electronWindow.webContents.send("voterControl", {type: "rendererResetWorkDecisionState"});
     }
 
     resetUserDecision = () => {
@@ -1062,8 +1117,10 @@ class whiteBlackListSeparator {
     adjustIntialPosition = async (searchStartPosition, proposedDPI) => {
         this.zeroCoords = {x: searchStartPosition.x, y: searchStartPosition.y};
         this.proposedPlayerRegion = new Region(searchStartPosition.x, searchStartPosition.y, 540/proposedDPI, 960/proposedDPI);
-        this.voteAmountRegion = new Region(searchStartPosition.x + 493, searchStartPosition.y + 921, 21/proposedDPI, 16/proposedDPI);
-        this.skipsAmountRegion = new Region(searchStartPosition.x + 328, searchStartPosition.y + 902, 21/proposedDPI, 13/proposedDPI);
+        this.voteAmountTwoDigitsRegion = new Region(searchStartPosition.x + 493, searchStartPosition.y + 921, 21/proposedDPI, 16/proposedDPI);
+        this.voteAmountSingleDigitRegion = new Region(searchStartPosition.x + 498, searchStartPosition.y + 921, 16/proposedDPI, 16/proposedDPI);
+        this.skipsAmountTwoDigitsRegion = new Region(searchStartPosition.x + 328, searchStartPosition.y + 902, 21/proposedDPI, 13/proposedDPI);
+        this.skipsAmountSingleDigitRegion = new Region(searchStartPosition.x + 332, searchStartPosition.y + 902, 13/proposedDPI, 13/proposedDPI);
 
         await screen.highlight(this.proposedPlayerRegion);
 
