@@ -255,7 +255,34 @@ body {
 }
 
 .button.confirmButton:hover {
-    box-shadow: rgba(4, 97, 64, 0.7) 0 1px 30px;
+    box-shadow: rgba(89,13,22,1) 0 1px 30px;
+    transition-duration: .1s;
+}
+
+.button.skipButton {
+    background-image: radial-gradient(circle, #455EB5 0%, rgba(184,213,249,1) 100%);
+}
+
+.button.skipButton:hover {
+    box-shadow: rgba(80, 63, 205, 0.7) 0 1px 30px;
+    transition-duration: .1s;
+}
+
+.button.voteLeftButton {
+    background-image: linear-gradient(92.88deg, #455EB5 9.16%, rgba(184,213,249,1) 64.72%);
+}
+
+.button.voteLeftButton:hover {
+    box-shadow: rgba(80, 63, 205, 0.7) 0 1px 30px;
+    transition-duration: .1s;
+}
+
+.button.voteRightButton {
+    background-image: linear-gradient(92.88deg, rgba(184,213,249,1) 9.16%, #455EB5 64.72%);
+}
+
+.button.voteRightButton:hover {
+    box-shadow: rgba(80, 63, 205, 0.7) 0 1px 30px;
     transition-duration: .1s;
 }
 

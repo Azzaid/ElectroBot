@@ -21,8 +21,8 @@ const consoleNodeLog = (text) => {
 
 function createWindow() {
     mainWindow = new BrowserWindow({
-        width: 900,
-        height: 900,
+        width: 1000,
+        height: 1200,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
@@ -68,16 +68,25 @@ ipcMain.on("main", (event, args) => {
 });
 ipcMain.on("voterControl", (event, args) => {
     console.log('voter control channel', args);
-    consoleNodeLog(`voter control channel ${args.type} command received`);
+    //consoleNodeLog(`voter control channel ${args.type} command received`);
     switch (args.type) {
         case "testWB": {
             try {
-                unfairVoteEngine.massVote(args.payload);
+                unfairVoteEngine.voteFromOneAccount(args.payload);
             } catch (error) {
                 consoleNodeLog(`unfair vote engine error ${error}`);
             }
             return true;
         }
+        case "startWB": {
+            try {
+                unfairVoteEngine.voteFromEveryAccount(args.payload);
+            } catch (error) {
+                consoleNodeLog(`unfair vote engine error ${error}`);
+            }
+            return true;
+        }
+
         case "addAccount": {
             try {
                 unfairVoteEngine.addAccount(args.payload);
@@ -118,6 +127,18 @@ ipcMain.on("voterControl", (event, args) => {
             }
             return true;
         }
+        case "voteWithoutDecision": {
+            try {
+                unfairVoteEngine.voteWithoutDecision(args.payload);
+            } catch (error) {
+                consoleNodeLog(`unfair vote engine error ${error}`);
+            }
+            return true;
+        }
+        case "stop": {
+            unfairVoteEngine.stop();
+            return true;
+        }
         default: {
             consoleNodeLog(`unfair vote unhandled command ${args.type}`);
             return true;
@@ -128,7 +149,7 @@ ipcMain.on("voterControl", (event, args) => {
 
 ipcMain.on("control", (event, args) => {
     console.log('control channel', args);
-    consoleNodeLog(`control channel ${args.type ? args.type : args} command received`);
+    //consoleNodeLog(`control channel ${args.type ? args.type : args} command received`);
     if (args === "barrelRoll") {
         (async () => {
             console.log('roll', args);
@@ -257,6 +278,10 @@ app.whenReady().then(() => {
 
     globalShortcut.register('Shift+6', () => {
         unfairVoteEngine.testImage();
+    })
+
+    globalShortcut.register('Shift+b', () => {
+        unfairVoteEngine.stop();
     })
 })
 

@@ -114,7 +114,7 @@ const eye = document.getElementById("eye");
 
 ipcRenderer.on("eye", (event, args) => {
     console.log('eye channel', args);
-    consoleNodeLog("eye chanel in renderer");
+    //consoleNodeLog("eye chanel in renderer");
     if (args === "open") {
         eye.classList.remove("close");
     }
@@ -150,20 +150,17 @@ ipcRenderer.on("log", (event, args) => {
 const testWB = document.getElementById('testWB');
 testWB.onclick = () => {
     ipcRenderer.send("voterControl", {type: "testWB"});
-    ipcRenderer.send("eye", "open");
 }
 
-/*const startWB = document.getElementById('startWB');
+const startWB = document.getElementById('startWB');
 startWB.onclick = () => {
     ipcRenderer.send("voterControl", {type: "startWB"});
-    ipcRenderer.send("eye", "open");
 }
 
 const stopWB = document.getElementById('stopWB');
 stopWB.onclick = () => {
-    ipcRenderer.send("voterControl", {type: "stopWB"});
-    ipcRenderer.send("eye", "wander");
-}*/
+    ipcRenderer.send("voterControl", {type: "stop"});
+}
 
 const addVoteCredentials = document.getElementById('addVoteCredentials');
 addVoteCredentials.onclick = () => {
@@ -207,9 +204,19 @@ document.getElementById('submitDecision').onclick = (event) => {
     ipcRenderer.send("voterControl", {type: "submitDecision"});
 }
 
+document.getElementById('justVoteLeft').onclick = (event) => {
+    ipcRenderer.send("voterControl", {type: "voteWithoutDecision", payload:{decision: "left"}});
+}
+document.getElementById('justSkip').onclick = (event) => {
+    ipcRenderer.send("voterControl", {type: "voteWithoutDecision", payload:{decision: "skip"}});
+}
+document.getElementById('jusVoteRight').onclick = (event) => {
+    ipcRenderer.send("voterControl", {type: "voteWithoutDecision", payload:{decision: "right"}});
+}
+
 ipcRenderer.on("voterControl", (event, args) => {
     console.log('voterControl channel', args);
-    consoleNodeLog(`voter control chanel in renderer ${args.type}`);
+    //consoleNodeLog(`voter control chanel in renderer ${args.type}`);
     switch (args.type) {
         case "rendererAddAccount": {
             addLoginPasswordInputPair.call(this, args.payload.index);
