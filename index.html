@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <!--<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">-->
     <link href="index.css" rel="stylesheet"/>
     <title>Lets roll those nuts!</title>
   </head>
@@ -106,6 +106,32 @@
         </table>
       </div>
     </div>
+      <div class="card">
+        <div class="rating-container">
+          <div class="rating-text">
+            <p>Select emulator:</p>
+          </div>
+          <div class="rating">
+            <label for="LDPlayer">
+              <input type="radio" name="EmulatorSelect" class="LDPlayer" id="LDPlayer" value="LDPlayer"/>
+              <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 48 48">
+                <path d="M15,6h18c4.971,0,9,4.029,9,9v18c0,4.971-4.029,9-9,9H15c-4.971,0-9-4.029-9-9V15 C6,10.029,10.029,6,15,6z"></path>
+                <polygon fill="#000" fill-opacity="70%" points="28,22 24.92,22 26,19 21,24 24.029,24 23,27"></polygon>
+                <polygon fill="#000" fill-opacity="70%" points="19,29 14,29 14,31.982 13,34 19,34"></polygon>
+                <path fill="#000" fill-opacity="70%" d="M24.5,12.5C18.71,12.5,14,17.21,14,23v4h5v-4c0-3.033,2.468-5.5,5.5-5.5S30,19.967,30,23v0.5c0,3.033-2.468,5.5-5.5,5.5 H21v5h3.5C30.29,34,35,29.29,35,23.5V23C35,17.21,30.29,12.5,24.5,12.5z"></path>
+              </svg>
+            </label>
+
+            <label for="Nox">
+              <input type="radio" name="EmulatorSelect" class="Nox" id="Nox" value="Nox" checked/>
+              <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 16 16">
+                <path d="M7.5,0L1,4v7l6.5,4l6.5-4V4L7.5,0z M6.954,9.393c-1.044,0-1.893-0.849-1.893-1.893V7.173c0-0.503-0.409-0.912-0.912-0.912	S3.236,6.67,3.236,7.173v2.135h-0.7V7.173c0-0.889,0.723-1.612,1.612-1.612s1.612,0.723,1.612,1.612V7.5	c0,0.658,0.535,1.193,1.193,1.193S8.146,8.158,8.146,7.5S7.611,6.307,6.954,6.307c-0.168,0-0.33,0.034-0.481,0.101	C6.394,6.443,6.324,6.49,6.256,6.54V5.747c0.222-0.089,0.456-0.14,0.698-0.14c1.044,0,1.893,0.849,1.893,1.893	S7.998,9.393,6.954,9.393z M11.897,9.393c-0.637,0-1.199-0.319-1.542-0.803c-0.343,0.484-0.905,0.803-1.543,0.803	c-0.094,0-0.187-0.007-0.277-0.021L8.635,8.68c0.688,0.1,1.369-0.462,1.369-1.18c0-0.724-0.69-1.29-1.387-1.177L8.506,5.632	c0.1-0.016,0.202-0.025,0.306-0.025c0.638,0,1.2,0.319,1.543,0.803c0.343-0.484,0.905-0.803,1.542-0.803	c0.135,0,0.271,0.015,0.403,0.043l-0.147,0.685c-0.73-0.16-1.448,0.421-1.448,1.166c0,0.658,0.535,1.193,1.192,1.193	c0.131,0,0.261-0.021,0.386-0.064l0.226,0.663C12.311,9.359,12.105,9.393,11.897,9.393z"></path>
+              </svg>
+            </label>
+
+          </div>
+        </div>
+      </div>
       <div class="expandableWrapper" id="instructionWrapper3">
         <div class="expandableHeader" id="instructionHeader3">
           Unfair vote instructions (click to expand)
@@ -207,8 +233,9 @@
         </table>
       </div>
       <div class="buttons_holder">
-        <button id="testWB" class="button testButton">Vote one twin</button>
-        <button id="startWB" class="button startButton">Vote all</button>
+        <button id="testWB" class="button testButton">Manually vote once</button>
+        <button id="learnWB" class="button startButton">Teach bot</button>
+        <button id="startWB" class="button startButton">Full auto vote</button>
         <button id="stopWB" class="button stopButton">Stop</button>
       </div>
       <div class="expandableWrapper" id="instructionWrapper1">
@@ -222,7 +249,7 @@
               1.
             </td>
             <td>
-              Install Nox android emulator (We're switched cause of blueStack screen size issues)
+              Install Nox (Or LDplayer) android emulator (Not BlueStack, it has screen size issues)
             </td>
             <td>
             </td>
@@ -314,7 +341,7 @@
               1.
             </td>
             <td>
-              Install Nox android emulator (We're switched cause of blueStack screen size issues)
+              Install android emulator
             </td>
             <td>
             </td>

@@ -107,6 +107,7 @@ const consoleNodeLog = (text) => {
 const consoleNodeAddImage = (imageUrl) => {
     const logImage = document.createElement("img");
     logImage.src = imageUrl;
+    logImage.classList.add("testImage");
     consoleNode.appendChild(logImage);
 }
 
@@ -147,14 +148,26 @@ ipcRenderer.on("log", (event, args) => {
     }
 });
 
+document.getElementById('LDPlayer').onchange = () => {
+    ipcRenderer.send("voterControl", {type: "choosePlayer", payload: "LDPlayer"});
+}
+document.getElementById('Nox').onchange = () => {
+    ipcRenderer.send("voterControl", {type: "choosePlayer", payload: "Nox"});
+}
+
 const testWB = document.getElementById('testWB');
 testWB.onclick = () => {
     ipcRenderer.send("voterControl", {type: "testWB"});
 }
 
+const learnWB = document.getElementById('learnWB');
+learnWB.onclick = () => {
+    ipcRenderer.send("voterControl", {type: "startWB", payload: false});
+}
+
 const startWB = document.getElementById('startWB');
 startWB.onclick = () => {
-    ipcRenderer.send("voterControl", {type: "startWB"});
+    ipcRenderer.send("voterControl", {type: "startWB", payload: true});
 }
 
 const stopWB = document.getElementById('stopWB');

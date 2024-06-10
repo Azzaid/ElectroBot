@@ -14,7 +14,7 @@ const getExactCornerCoords = async (startPoint, corner="topLeft", marginColor) =
 
     while (!topMarginReached || !bottomMarginReached) {
         if (!topMarginReached) {
-            const nextPixelMatchesTargetColor = await checkIfNextPixelSame(currentCoords, targetColor, {x: 0, y: -1});
+            const nextPixelMatchesTargetColor = await checkIfNextPixelSame(currentCoords, targetColor.top || targetColor, {x: 0, y: -1});
             if (nextPixelMatchesTargetColor || (reverseSearch && !nextPixelMatchesTargetColor)) {
                 topMarginReached = true;
             } else {
@@ -23,7 +23,7 @@ const getExactCornerCoords = async (startPoint, corner="topLeft", marginColor) =
         }
 
         if (!bottomMarginReached) {
-            const nextPixelMatchesTargetColor = await checkIfNextPixelSame(currentCoords, targetColor, {x: 0, y: 1});
+            const nextPixelMatchesTargetColor = await checkIfNextPixelSame(currentCoords, targetColor.bottom || targetColor, {x: 0, y: 1});
             if (nextPixelMatchesTargetColor || (reverseSearch && !nextPixelMatchesTargetColor)) {
                 bottomMarginReached = true;
             } else {
@@ -35,7 +35,7 @@ const getExactCornerCoords = async (startPoint, corner="topLeft", marginColor) =
 
     while (!leftMarginReached || !rightMarginReached) {
         if (!rightMarginReached) {
-            const nextPixelMatchesTargetColor = await checkIfNextPixelSame(currentCoords, targetColor, {x: 1, y: 0});
+            const nextPixelMatchesTargetColor = await checkIfNextPixelSame(currentCoords, targetColor.right || targetColor, {x: 1, y: 0});
             if (nextPixelMatchesTargetColor || (reverseSearch && !nextPixelMatchesTargetColor)) {
                 rightMarginReached = true;
             } else {
@@ -44,7 +44,7 @@ const getExactCornerCoords = async (startPoint, corner="topLeft", marginColor) =
         }
 
         if (!leftMarginReached) {
-            const nextPixelMatchesTargetColor = await checkIfNextPixelSame(currentCoords, targetColor, {x: -1, y: 0});
+            const nextPixelMatchesTargetColor = await checkIfNextPixelSame(currentCoords, targetColor.left || targetColor, {x: -1, y: 0});
             if (nextPixelMatchesTargetColor || (reverseSearch && !nextPixelMatchesTargetColor)) {
                 leftMarginReached = true;
             } else {

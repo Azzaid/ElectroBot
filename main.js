@@ -29,7 +29,7 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js')
         }
     })
-    mainWindow.setMenu(null);
+    //mainWindow.setMenu(null);
     mainWindow.loadFile(path.join(__dirname, "index.html"))
 
     try {
@@ -86,7 +86,10 @@ ipcMain.on("voterControl", (event, args) => {
             }
             return true;
         }
-
+        case "choosePlayer": {
+            unfairVoteEngine.setSelectedEmulator(args.payload);
+            return true
+        }
         case "addAccount": {
             try {
                 unfairVoteEngine.addAccount(args.payload);
@@ -265,7 +268,7 @@ app.whenReady().then(() => {
     })
 
     globalShortcut.register('Shift+3', () => {
-        unfairVoteEngine.getCorner();
+        unfairVoteEngine.testWorks();
     })
 
     globalShortcut.register('Shift+4', () => {
@@ -274,10 +277,6 @@ app.whenReady().then(() => {
 
     globalShortcut.register('Shift+5', () => {
         unfairVoteEngine.getBottomMargin();
-    })
-
-    globalShortcut.register('Shift+6', () => {
-        unfairVoteEngine.testImage();
     })
 
     globalShortcut.register('Shift+b', () => {

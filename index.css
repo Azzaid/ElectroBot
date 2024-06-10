@@ -466,3 +466,53 @@ body{
 .radio3:checked ~ .sliderContainer .slider{
     background:rgb(255,255,255);
 }
+
+.voteHelpImage {
+    width: 300px;
+}
+
+.rating {
+    padding: 0.4rem 0.4rem 0.1rem 0.4rem;
+    border-radius: 2.2rem;
+}
+
+svg {
+    fill: rgb(242, 242, 242);
+    height: 3.6rem;
+    width: 3.6rem;
+    margin: 0.2rem;
+}
+input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+input[type="radio"] + svg {
+    -webkit-transition: all 0.2s;
+    transition: all 0.2s;
+}
+
+input + svg {
+    cursor: pointer;
+    fill-opacity: 50%;
+}
+
+input[class="LDPlayer"]:hover + svg {
+    fill: #ffca28;
+    fill-opacity: 50%;
+}
+input[class="LDPlayer"]:checked + svg,
+input[class="LDPlayer"]:focus + svg {
+    fill: #ffca28;
+    fill-opacity: 100%;
+}
+
+input[class="Nox"]:hover + svg {
+    fill: #7950F2;
+    fill-opacity: 50%;
+}
+input[class="Nox"]:checked + svg,
+input[class="Nox"]:focus + svg {
+    fill: #7950F2;
+    fill-opacity: 100%;
+}
