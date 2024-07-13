@@ -263,7 +263,7 @@ app.whenReady().then(() => {
         unfairVoteEngine.manualFindSearchRegion();
     });
 
-    globalShortcut.register('}', () => {
+    globalShortcut.register('Shift+s', () => {
         unfairVoteEngine.getDotInfo();
     })
 

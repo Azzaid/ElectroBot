@@ -14,6 +14,10 @@ const getSignature = require("./utils/getSignature");
 const { performance } = require('perf_hooks');
 
 const initialStats = {
+    totalVotes: 0,
+    twinsProcessed: 0,
+    white:0,
+    black:0,
     leftBlack:0,
     rightBlack:0,
     leftWhite: 0,
@@ -51,16 +55,21 @@ class whiteBlackListSeparator {
             this.electronWindow.webContents.send("log", {type: "addImage", payload: imageUrl});
         }
 
+        this.consoleNodeStats = (statObj) => {
+            this.electronWindow.webContents.send("log", {type: "updateTotals", payload: statObj});
+        }
+
         const uri = "mongodb+srv://johanasazzaid:UJdfaaCS5NjAPKGB@tpcwhiteblacklist.fsgf4va.mongodb.net/?retryWrites=true&w=majority&appName=TPCWhiteBlackList";
         this.mongoClient = new MongoClient(uri, {
             serverApi: {
                 version: ServerApiVersion.v1,
             }
         });
-        this.collectionName = "Release collection 2";
+        this.collectionName = "Release collection 4";
 
         this.autonomousMode = false;
         this.testMode = false;
+        this.build = false;
 
         this.borderColourPerEmulator = {
             "Nox": {R:13, G:16, B:48},
@@ -94,8 +103,7 @@ class whiteBlackListSeparator {
 
         this.timerStore= {};
 
-        //this.accountsForVote = [];
-        this.accountsForVote = [{email: "daschat@mail.ru", password: "26121988Darya"}, {email: "valekonova@gmail.com", password: "Vale1111"}, {email: "tartarusring@mail.ru", password: "96dd3fb78dfe52e6 IGGо"}];
+        this.accountsForVote = [];
 
         this.userDecisionMade = false;
         this.userDecision = {};
@@ -111,10 +119,20 @@ class whiteBlackListSeparator {
                 {position: {x: 348, y: 724}, color: {R:247, G:240, B:223}},
             ],
             firstLoginScreenWithOverlay: [
-                {position: {x: 146, y: 626}, color: {R:247, G:240, B:223}},
-                {position: {x: 268, y: 617}, color: {R:247, G:240, B:223}},
-                {position: {x: 336, y: 119}, color: {R:11, G:13, B:17}},
-                {position: {x: 415, y: 388}, color: {R:41, G:38, B:41}},
+                {position: {x: 45, y: 150}, color: {R:45, G:43, B:40}},
+                {position: {x: 41, y: 66}, color: {R:45, G:43, B:40}},
+                {position: {x: 477, y: 62}, color: {R:47, G:47, B:47}},
+                {position: {x: 333, y: 724}, color: {R:45, G:43, B:40}},
+                {position: {x: 349, y: 722}, color: {R:45, G:43, B:40}},
+            ],
+            loginWithIggButton: [
+                {position: {x: 200, y: 706}, color: {R:247, G:240, B:223}},
+                {position: {x: 207, y: 703}, color: {R:247, G:240, B:223}},
+                {position: {x: 214, y: 706}, color: {R:247, G:240, B:223}},
+                {position: {x: 201, y: 744}, color: {R:247, G:240, B:223}},
+                {position: {x: 213, y: 744}, color: {R:247, G:240, B:223}},
+                {position: {x: 207, y: 736}, color: {R:247, G:240, B:223}},
+                {position: {x: 206, y: 723}, color: {R:247, G:240, B:223}},
             ],
             iggInternalChangeScreen: {
                 "Nox": [
@@ -236,6 +254,13 @@ class whiteBlackListSeparator {
                 {position: {x: 150, y: 31}, color: {R:98, G:60, B:63}},
                 {position: {x: 514, y: 851}, color: {R:96, G:92, B:85}},
                 {position: {x: 21, y: 855}, color: {R:96, G:92, B:84}},
+            ],
+            playerRoomWithOverlay3: [
+                {position: {x: 283, y: 33}, color: {R:93, G:83, B:55}},
+                {position: {x: 405, y: 30}, color: {R:69, G:84, B:90}},
+                {position: {x: 256, y: 34}, color: {R:41, G:36, B:34}},
+                {position: {x: 528, y: 409}, color: {R:56, G:41, B:36}},
+                {position: {x: 11, y: 768}, color: {R:64, G:49, B:37}},
             ],
             uploadDataPromptScreen: [
                 {position: {x: 80, y: 352}, color: {R:240, G:235, B:231}},
@@ -386,12 +411,17 @@ class whiteBlackListSeparator {
                 {position: {x: 253, y: 316}, color: {R:151, G:142, B:196}},
             ],*/
             voteLoadingScreenStatic: [
-                {position: {x: 473, y: 59}, color: {R:49, G:44, B:67}},
-                {position: {x: 386, y: 504}, color: {R:255, G:255, B:255}},
-                {position: {x: 302, y: 590}, color: {R:177, G:118, B:175}},
+                {position: {x: 369, y: 217}, color: {R:28, G:175, B:197}},
+                {position: {x: 230, y: 796}, color: {R:99, G:180, B:158}},
+                {position: {x: 315, y: 247}, color: {R:239, G:183, B:174}},
             ],
             voteLoadingScreenDynamic: [
                 {position: {x: 483, y: 875}, color: {R:104, G:85, B:111}},
+            ],
+            voteFaeOverlay: [
+                {position: {x: 126, y: 252}, color: {R:238, G:225, B:211}},
+                {position: {x: 482, y: 39}, color: {R:208, G:208, B:208}},
+                {position: {x: 488, y: 20}, color: {R:28, G:23, B:25}},
             ],
             voteLoadedScreen: [
                 {position: {x: 488, y: 872}, color: {R:255, G:254, B:252}},
@@ -414,6 +444,7 @@ class whiteBlackListSeparator {
         }
 
         this.controlsPositions = {
+            lastLoginMethodButtonOnInitialLoginScreen: {x: 206, y: 724},
             otherLoginMethodsButtonOnInitialLoginScreen: {x: 333, y: 724},
             iggLoginButtonOnFirstLoginScreenWithOverlay: {x: 146, y: 626},
             okButtonOnDoYouWnnaLoginPromptScreen: {x: 361, y: 564},
@@ -463,6 +494,7 @@ class whiteBlackListSeparator {
             openLetterButtonOnVelkomeBackLetterScreen: {x: 234, y: 572},
             voteLeftButtonOnVoteScreen: {x: 130, y: 818},
             voteRightButtonOnVoteScreen: {x: 410, y: 818},
+            voteScreenFaeskipButton: {x: 488, y: 37},
             skipButtonOnVoteScreen: {x: 268, y: 877},
             carouselButtonOnRoomScreen: {x: 71, y: 623},
             journalButtonOnPreVoteScreen: {x: 358, y: 720},
@@ -472,33 +504,38 @@ class whiteBlackListSeparator {
         }
     }
 
+    removeAllFiles = async (directory) => {
+        await fs.readdir(directory, {}, async (err, files) => {
+            if (!err) {
+                for (const file of files) {
+                    const filePath = path.join(directory, file);
+                    await fs.unlink(filePath);
+                }
+            }
+        });
+
+        return true
+    }
+
     toggleAutonomousMode = (mode) => {
         this.autonomousMode = mode !== undefined ? mode : !this.autonomousMode;
         mouse.config.mouseSpeed = this.autonomousMode ? 10000 : 2000;
         keyboard.config.autoDelayMs = this.autonomousMode ? 100 : 500;
     }
 
-    setLogFolder = (newLogFolder => {
+    setLogFolder = (newLogFolder) => {
         this.logFolder = newLogFolder;
-    })
+    };
 
     stop = () => {
         if (this.isRolling) this.stopFlagSet = true;
-    }
-
-    clickOnPoint = async (point) => {
-        if (!this.stopFlagSet) {
-            await mouse.move(straightTo(centerOf(point)));
-            await mouse.leftClick();
-        } else {
-            throw ("Wont click, master sad stop")
-        }
     }
 
     moveTo = async (point) => {
         if (!this.stopFlagSet) {
             await mouse.move(straightTo(new Point(point.x ,point.y)));
         } else {
+            this.stopFlagSet = false;
             this.consoleNodeLog("Master commanded stop")
         }
     }
@@ -522,23 +559,6 @@ class whiteBlackListSeparator {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    changeAccount = async () => {
-        this.timer.start("changeAccount");
-        this.currentAccountIndex++;
-        this.currentCharacterIndex = 0;
-        await this.followPath([
-            {screenToLoad: this.screensList.iggInternalChangeScreen[this.selectedEmulator], buttonToPush: this.controlsPositions.useOtherAccountButtonOnIggInternalChangeScreen[this.selectedEmulator]},
-            {screenToLoad: this.screensList.iggInternalLoginScreen, buttonToPush: this.controlsPositions.emailFieldOnIggInternalLoginScreen, textToInput: this.accountsForVote[this.currentAccountIndex].email},
-            {screenToLoad: this.screensList.iggInternalLoginScreen, buttonToPush: this.controlsPositions.passwordFieldOnIggInternalLoginScreen},
-            {screenToLoad: this.screensList.iggInternalLoginScreen, buttonToPush: this.controlsPositions.passwordFieldOnIggInternalLoginScreen, textToInput: this.accountsForVote[this.currentAccountIndex].password},
-            {screenToLoad: this.screensList.iggInternalLoginScreen, buttonToPush: this.controlsPositions.loginButtonOnIggInternalLoginScreen},
-            {screenToLoad: this.screensList.iggInternalLoginScreen, buttonToPush: this.controlsPositions.loginButtonOnIggInternalLoginScreen},
-        ])
-
-        this.timer.stop("changeAccount");
-        return true
-    }
-
     timer = {
         start: (name) => {
             this.timerStore[name] = performance.now();
@@ -547,6 +567,47 @@ class whiteBlackListSeparator {
             if (this.times[name] === undefined) this.times[name] = 0;
             this.times[name] = this.times[name] + (performance.now() - this.timerStore[name])/1000;
         }
+    }
+
+    formatTime = (secondsAmount) => {
+        if (!secondsAmount) return "In progress"
+        const seconds = secondsAmount % 60;
+        const minutes = Math.floor((secondsAmount % 3600) / 60);
+        const hours = Math.floor(secondsAmount / 3600);
+        return `${hours}h ${minutes}m ${seconds}s`
+    }
+
+    logStatistics = () => {
+        const detailsObject = {
+            "found black list works": this.stats.black,
+            "found white list works": this.stats.white,
+            "times voted": this.stats.totalVotes,
+            "twins processed": this.stats.twinsProcessed,
+            "time spent voting": this.formatTime(this.times.voteForWorks),
+            "time spent closing pop-ups": this.formatTime(this.times.closeAllPopUps),
+            "time spent loggin in": this.formatTime(this.times.login),
+            "time spent loggin out": this.formatTime(this.times.logOut),
+            "total time spend": this.formatTime(this.times.voteFromEveryAccount),
+        }
+
+        this.consoleNodeStats(detailsObject);
+    }
+
+    changeAccount = async () => {
+        this.timer.start("changeAccount");
+        this.currentAccountIndex++;
+        this.currentCharacterIndex = 0;
+        await this.followPath([
+            {screenToLoad: this.screensList.iggInternalChangeScreen[this.selectedEmulator], buttonToPush: this.controlsPositions.useOtherAccountButtonOnIggInternalChangeScreen[this.selectedEmulator], stepName:"click use other account button"},
+            {screenToLoad: this.screensList.iggInternalLoginScreen, buttonToPush: this.controlsPositions.emailFieldOnIggInternalLoginScreen, textToInput: this.accountsForVote[this.currentAccountIndex].email, stepName:"input email"},
+            {screenToLoad: this.screensList.iggInternalLoginScreen, buttonToPush: this.controlsPositions.passwordFieldOnIggInternalLoginScreen, stepName:"defocus email field"},
+            {screenToLoad: this.screensList.iggInternalLoginScreen, buttonToPush: this.controlsPositions.passwordFieldOnIggInternalLoginScreen, textToInput: this.accountsForVote[this.currentAccountIndex].password, stepName:"input password"},
+            {screenToLoad: this.screensList.iggInternalLoginScreen, buttonToPush: this.controlsPositions.loginButtonOnIggInternalLoginScreen, stepName:"defocus password field"},
+            {screenToLoad: this.screensList.iggInternalLoginScreen, buttonToPush: this.controlsPositions.loginButtonOnIggInternalLoginScreen, stepName:"click login button"},
+        ])
+
+        this.timer.stop("changeAccount");
+        return true
     }
 
     logIn = async () => {
@@ -561,6 +622,8 @@ class whiteBlackListSeparator {
             ||
             await this.checkSignature(this.screensList.playerRoomWithOverlay2)
             ||
+            await this.checkSignature(this.screensList.playerRoomWithOverlay3)
+            ||
             await this.checkSignature(this.screensList.fantasyPromiseOverlay)
             ||
             await this.checkSignature(this.screensList.newItemPreviewScreen)
@@ -572,15 +635,25 @@ class whiteBlackListSeparator {
             await this.checkSignature(this.screensList.velkomeBackLetterScreen)
             ||
             await this.checkSignature(this.screensList.revardOverlayOnRandomScreenWithGetButton1)) {
+            this.consoleNodeLog("Already logged in");
+
             return true
         }
 
         const isScreenInitial = await this.checkSignature(this.screensList.firstLoginScreen);
+        const loginWithIggIsOutsideDropdown = await this.checkSignature(this.screensList.loginWithIggButton);
         if (isScreenInitial) {
-            await this.followPath([
-                {screenToLoad: this.screensList.firstLoginScreen, buttonToPush: this.controlsPositions.otherLoginMethodsButtonOnInitialLoginScreen},
-                {screenToLoad: this.screensList.firstLoginScreenWithOverlay, buttonToPush: this.controlsPositions.iggLoginButtonOnFirstLoginScreenWithOverlay}
-                ])
+            if (loginWithIggIsOutsideDropdown) {
+                await this.followPath([
+                    {screenToLoad: this.screensList.firstLoginScreen, buttonToPush: this.controlsPositions.lastLoginMethodButtonOnInitialLoginScreen, stepName:"Click on login with IGG"},
+                ]);
+            } else {
+                await this.followPath([
+                    {screenToLoad: this.screensList.firstLoginScreen, buttonToPush: this.controlsPositions.otherLoginMethodsButtonOnInitialLoginScreen, stepName:"Click on use other login"},
+                    {screenToLoad: this.screensList.firstLoginScreenWithOverlay, buttonToPush: this.controlsPositions.iggLoginButtonOnFirstLoginScreenWithOverlay, stepName:"Click on login with IGG"}
+                ]);
+            }
+
         }
 
         if (this.needToChangeAccount) {
@@ -589,29 +662,37 @@ class whiteBlackListSeparator {
         }
 
         await this.followPath([
-            {screenToLoad: this.screensList.iggInternalChangeScreen[this.selectedEmulator], buttonToPush: this.controlsPositions.loginButtonOnIggInternalChangeScreen[this.selectedEmulator]},
-            {screenToLoad: this.screensList.iggCharacterSelectScreen[this.selectedEmulator], buttonToPush: {x: this.controlsPositions.firstCharacterSelectButtonOnIggCharacterSelectScreen[this.selectedEmulator].x, y: this.controlsPositions.firstCharacterSelectButtonOnIggCharacterSelectScreen[this.selectedEmulator].y + this.shifts.characterSelectButtonXShift[this.selectedEmulator] * this.currentCharacterIndex}},
+            {screenToLoad: this.screensList.iggInternalChangeScreen[this.selectedEmulator], buttonToPush: this.controlsPositions.loginButtonOnIggInternalChangeScreen[this.selectedEmulator], stepName:"click on login"},
+            {screenToLoad: this.screensList.iggCharacterSelectScreen[this.selectedEmulator], buttonToPush: {x: this.controlsPositions.firstCharacterSelectButtonOnIggCharacterSelectScreen[this.selectedEmulator].x, y: this.controlsPositions.firstCharacterSelectButtonOnIggCharacterSelectScreen[this.selectedEmulator].y + this.shifts.characterSelectButtonXShift[this.selectedEmulator] * this.currentCharacterIndex, stepName:"Click on twin button"}},
         ])
 
         try {
-            await this.waitForScreenToLoad(this.screensList.doYouWnnaLoginPromptScreen, 3000)
-        } catch (error) {
-            await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.backButtonOnCharacterSelectScreen, this.zeroCoords));
-            await this.changeAccount();
+            this.consoleNodeLog("wait for prompt do you wanna login with this");
+            await this.waitForScreenToLoad(this.screensList.doYouWnnaLoginPromptScreen, 3000, false, "No login prompt on screen");
             await this.followPath([
-                {screenToLoad: this.screensList.iggInternalChangeScreen[this.selectedEmulator], buttonToPush: this.controlsPositions.loginButtonOnIggInternalChangeScreen[this.selectedEmulator]},
-                {screenToLoad: this.screensList.iggCharacterSelectScreen[this.selectedEmulator], buttonToPush: {x: this.controlsPositions.firstCharacterSelectButtonOnIggCharacterSelectScreen[this.selectedEmulator].x, y: this.controlsPositions.firstCharacterSelectButtonOnIggCharacterSelectScreen[this.selectedEmulator].y + this.shifts.characterSelectButtonXShift[this.selectedEmulator] * this.currentCharacterIndex}},
+                {screenToLoad: this.screensList.doYouWnnaLoginPromptScreen, buttonToPush: this.controlsPositions.okButtonOnDoYouWnnaLoginPromptScreen, stepName:"wait for prompt do you wanna login with this"},
             ])
+        } catch (error) {
+            try {
+                this.consoleNodeLog("wait for player room to load");
+                await this.waitForScreenToLoad([this.screensList.playerRoom, this.screensList.velkomeBackLetterScreen, this.screensList.fantasyPromiseOverlay, this.screensList.revardOverlayOnRandomScreenWithGetButton1, this.screensList.catBubblesScreen, this.screensList.catBubblesPreviewScreen, this.screensList.randomScreenWithGetButton1, this.screensList.playerRoomWithOverlay, this.screensList.playerRoomWithOverlay2, this.screensList.playerRoomWithOverlay3, this.screensList.fantasyPromiseOverlay, this.screensList.newItemPreviewScreen, this.screensList.someUnknownScreenWithBackButton, this.screensList.policyConfirmationScreen], 30000, true, "Looks like player screen is not loading");
+            } catch (error) {
+                this.consoleNodeLog("no more twins on this account?");
+                await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.backButtonOnCharacterSelectScreen, this.zeroCoords));
+                await this.changeAccount();
+                await this.followPath([
+                    {screenToLoad: this.screensList.iggInternalChangeScreen[this.selectedEmulator], buttonToPush: this.controlsPositions.loginButtonOnIggInternalChangeScreen[this.selectedEmulator], stepName:"click on login"},
+                    {screenToLoad: this.screensList.iggCharacterSelectScreen[this.selectedEmulator], buttonToPush: {x: this.controlsPositions.firstCharacterSelectButtonOnIggCharacterSelectScreen[this.selectedEmulator].x, y: this.controlsPositions.firstCharacterSelectButtonOnIggCharacterSelectScreen[this.selectedEmulator].y + this.shifts.characterSelectButtonXShift[this.selectedEmulator] * this.currentCharacterIndex}, stepName:"Click on twin button"},
+                ])
+            }
         }
 
-        await this.followPath([
-            {screenToLoad: this.screensList.doYouWnnaLoginPromptScreen, buttonToPush: this.controlsPositions.okButtonOnDoYouWnnaLoginPromptScreen},
-        ])
-
-        await this.waitForScreenToLoad([this.screensList.playerRoom, this.screensList.velkomeBackLetterScreen, this.screensList.fantasyPromiseOverlay, this.screensList.revardOverlayOnRandomScreenWithGetButton1, this.screensList.catBubblesScreen, this.screensList.catBubblesPreviewScreen, this.screensList.randomScreenWithGetButton1, this.screensList.playerRoomWithOverlay, this.screensList.playerRoomWithOverlay2, this.screensList.fantasyPromiseOverlay, this.screensList.newItemPreviewScreen, this.screensList.someUnknownScreenWithBackButton, this.screensList.policyConfirmationScreen], 30000, true);
+        this.consoleNodeLog("wait for player room to load");
+        await this.waitForScreenToLoad([this.screensList.playerRoom, this.screensList.velkomeBackLetterScreen, this.screensList.fantasyPromiseOverlay, this.screensList.revardOverlayOnRandomScreenWithGetButton1, this.screensList.catBubblesScreen, this.screensList.catBubblesPreviewScreen, this.screensList.randomScreenWithGetButton1, this.screensList.playerRoomWithOverlay, this.screensList.playerRoomWithOverlay2, this.screensList.playerRoomWithOverlay3, this.screensList.fantasyPromiseOverlay, this.screensList.newItemPreviewScreen, this.screensList.someUnknownScreenWithBackButton, this.screensList.policyConfirmationScreen], 30000, true);
 
         const additionalPopUpGenerated = await this.checkSignature(this.screensList.policyConfirmationScreen);
         if (additionalPopUpGenerated) {
+            this.consoleNodeLog("Click on policy confirmation screen");
             await this.followPath([
                 {screenToLoad: this.screensList.policyConfirmationScreen, buttonToPush: this.controlsPositions.confirmButtonOnPolicyConfirmationScreen}
             ])
@@ -626,7 +707,7 @@ class whiteBlackListSeparator {
         this.consoleNodeClear();
         this.consoleNodeLog("closeAllPopUps");
 
-        await this.waitForScreenToLoad([this.screensList.playerRoom, this.screensList.velkomeBackLetterScreen, this.screensList.revardOverlayOnRandomScreenWithGetButton1, this.screensList.fantasyPromiseOverlay, this.screensList.catBubblesScreen, this.screensList.catBubblesPreviewScreen, this.screensList.randomScreenWithGetButton1, this.screensList.playerRoomWithOverlay, this.screensList.playerRoomWithOverlay2, this.screensList.newItemPreviewScreen, this.screensList.someUnknownScreenWithBackButton], 30000, true);
+        await this.waitForScreenToLoad([this.screensList.playerRoom, this.screensList.velkomeBackLetterScreen, this.screensList.revardOverlayOnRandomScreenWithGetButton1, this.screensList.fantasyPromiseOverlay, this.screensList.catBubblesScreen, this.screensList.catBubblesPreviewScreen, this.screensList.randomScreenWithGetButton1, this.screensList.playerRoomWithOverlay, this.screensList.playerRoomWithOverlay2, this.screensList.playerRoomWithOverlay3, this.screensList.newItemPreviewScreen, this.screensList.someUnknownScreenWithBackButton], 30000, true);
 
         let playerRoomIsVisible = await this.checkSignature(this.screensList.playerRoom);
         while (!playerRoomIsVisible) {
@@ -649,6 +730,10 @@ class whiteBlackListSeparator {
             }
 
             if (await this.checkSignature(this.screensList.playerRoomWithOverlay2)) {
+                await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.randomEmptySpaceOnPlayerRoomWitOverlayScreen, this.zeroCoords));
+            }
+
+            if (await this.checkSignature(this.screensList.playerRoomWithOverlay3)) {
                 await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.randomEmptySpaceOnPlayerRoomWitOverlayScreen, this.zeroCoords));
             }
 
@@ -712,6 +797,7 @@ class whiteBlackListSeparator {
         this.timer.start("logOut");
         this.consoleNodeClear();
         this.consoleNodeLog("log out");
+        this.stats.twinsProcessed++;
         await this.followPath([
             {screenToLoad: this.screensList.playerRoom, buttonToPush: this.controlsPositions.profileButtonOnRoomScreen},
             {screenToLoad: this.screensList.profileScreen, buttonToPush: this.controlsPositions.profileSettingsButtonOnProfileScreen},
@@ -747,6 +833,11 @@ class whiteBlackListSeparator {
             {screenToLoad: this.screensList.preVoteScreen, buttonToPush: this.controlsPositions.journalButtonOnPreVoteScreen},
             {screenToLoad:this.screensList.voteLoadingScreenStatic, stepName:"wait for static to load"},
             {screenToHide:this.screensList.voteLoadingScreenStatic, stepName:"wait for static to hide"},
+        ]);
+
+        if (await this.checkSignature(this.screensList.voteFaeOverlay)) await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.voteScreenFaeskipButton, this.zeroCoords));
+
+        await this.followPath([
             {screenToLoad: this.screensList.voteLoadedScreen, buttonToPush: this.controlsPositions.enterVoteButtonOnVoteLoadedScreen, stepName:"wait for dynamick to load"},
         ]);
 
@@ -784,6 +875,8 @@ class whiteBlackListSeparator {
         this.stats = {...initialStats};
         this.times = {};
 
+        this.removeAllFiles(`./${this.build ? "resources/app/" : ""}botLogick/temporaryAssets`);
+
         if (this.isRolling) {
             this.consoleNodeLog("Process already started");
         } else if (this.zeroCoords.x == 0 && this.zeroCoords.y == 0) {
@@ -808,6 +901,7 @@ class whiteBlackListSeparator {
                     this.needToChangeAccount = true;
                     this.currentCharacterIndex = 0;
                 }
+                this.logStatistics();
             }
 
             await this.stopTesseractWorker();
@@ -821,6 +915,7 @@ class whiteBlackListSeparator {
         this.stopFlagSet = false;
         this.electronWindow.webContents.send("eye", "stop");
         this.timer.stop("voteFromEveryAccount");
+        this.logStatistics();
         return true
     }
 
@@ -843,6 +938,7 @@ class whiteBlackListSeparator {
 
         this.consoleNodeLog("vote ended");
         this.timer.stop("voteFromEveryCharacter");
+        this.logStatistics();
         return true
     }
 
@@ -860,15 +956,18 @@ class whiteBlackListSeparator {
             this.electronWindow.webContents.send("eye", "wander");
             this.consoleNodeClear();
             this.consoleNodeLog("vote started");
+            console.log("vote started")
+
+            this.skipsAmountLeft = await this.checkSkipsAmount();
+            this.votesAmountLeft = await this.checkVotesAmount();
 
             while (this.votesAmountLeft && !this.stopFlagSet && !(this.testMode && (this.votesAmountLeft < 30 || this.skipsAmountLeft < 30))) {
-                this.skipsAmountLeft = await this.checkSkipsAmount();
-                this.votesAmountLeft = await this.checkVotesAmount();
                 this.consoleNodeLog(`vote once, votes left:${this.votesAmountLeft}, skips left:${this.skipsAmountLeft}`);
                 this.worksList = await this.downloadAllWorksFroDB();
                 await this.voteForWorks();
-                await this.waitForScreenToLoad(this.screensList.voteScreen);
+                if (!this.stopFlagSet) await this.waitForScreenToLoad(this.screensList.voteScreen);
                 console.log("results is", this.stats, this.times);
+                this.logStatistics();
             }
 
             await this.stopTesseractWorker();
@@ -877,6 +976,7 @@ class whiteBlackListSeparator {
             this.stopFlagSet = false;
             this.electronWindow.webContents.send("eye", "stop");
             this.isRolling = false;
+            this.logStatistics();
             return true
         }
     }
@@ -929,7 +1029,7 @@ class whiteBlackListSeparator {
         this.consoleNodeClear();
         this.consoleNodeLog(`Ready to vote skips:${this.skipsAmountLeft}, votes:${this.votesAmountLeft}`);
 
-        //TEMPORARY
+/*        //TEMPORARY
         const leftList = this.worksList.filter(work => work.side === "left");
         const rightList = this.worksList.filter(work => work.side === "right");
 
@@ -937,9 +1037,11 @@ class whiteBlackListSeparator {
         let rightWork = await searchForWork(rightList, coordHelper.relativeToAbsolute(this.topLefCornerOfRightWorkVote, this.zeroCoords));
 
         if (!leftWork.length) leftWork = await searchForWork(leftList, coordHelper.relativeToAbsolute({x: this.topLefCornerOfLeftWorkVote.x - 1, y: this.topLefCornerOfLeftWorkVote.y}, this.zeroCoords));
-        if (!rightWork.length) rightWork = await searchForWork(leftList, coordHelper.relativeToAbsolute({x: this.topLefCornerOfRightWorkVote.x - 1, y: this.topLefCornerOfRightWorkVote.y}, this.zeroCoords));
-        //const leftWork = await searchForWork(this.worksList, coordHelper.relativeToAbsolute(this.topLefCornerOfLeftWorkVote, this.zeroCoords));
-        //const rightWork = await searchForWork(this.worksList, coordHelper.relativeToAbsolute(this.topLefCornerOfRightWorkVote, this.zeroCoords));
+        if (!rightWork.length) rightWork = await searchForWork(leftList, coordHelper.relativeToAbsolute({x: this.topLefCornerOfRightWorkVote.x - 1, y: this.topLefCornerOfRightWorkVote.y}, this.zeroCoords));*/
+        this.timer.start("recognizeWorks");
+        const leftWork = await searchForWork(this.worksList, coordHelper.relativeToAbsolute(this.topLefCornerOfLeftWorkVote, this.zeroCoords));
+        const rightWork = await searchForWork(this.worksList, coordHelper.relativeToAbsolute(this.topLefCornerOfRightWorkVote, this.zeroCoords));
+        this.timer.stop("recognizeWorks");
 
         let leftWorkIs = leftWork[0]?.list;
         let rightWorkIs = rightWork[0]?.list;
@@ -985,38 +1087,49 @@ class whiteBlackListSeparator {
 
         this.resetUserDecision();
         this.timer.stop("voteForWorks");
+        this.logStatistics();
         return true
     }
 
     updateStatistics = (dbLeftWork, dbRightWork, decisionLeftWork, decisionRightWork) => {
+        this.stats.totalVotes++;
+        
         if (dbLeftWork) {
             if (dbLeftWork.list === "white") {
+                this.stats.white++;
                 this.stats.leftStoredWhite++;
                 if (dbLeftWork.side === "right") this.stats.leftCrossStoredWhite++;
             } else if (dbLeftWork.list === "black") {
+                this.stats.black++;
                 this.stats.leftStoredBlack++;
                 if (dbLeftWork.side === "right") this.stats.leftCrossStoredBlack++;
             }
         } else if (decisionLeftWork) {
             if (decisionLeftWork === "white") {
+                this.stats.white++;
                 this.stats.leftWhite++;
             } else if (decisionLeftWork === "black") {
+                this.stats.black++;
                 this.stats.leftBlack++;
             }
         }
 
         if (dbRightWork) {
             if (dbRightWork.list === "white") {
+                this.stats.white++;
                 this.stats.rightStoredWhite++;
                 if (dbRightWork.side === "left") this.stats.rightCrossStoredWhite++;
             } else if (dbRightWork.list === "black") {
+                this.stats.black++;
                 this.stats.rightStoredBlack++;
                 if (dbRightWork.side === "left") this.stats.rightCrossStoredBlack++;
             }
         } else if (decisionRightWork) {
             if (decisionRightWork === "white") {
+                this.stats.white++;
                 this.stats.rightWhite++;
             } else if (decisionRightWork === "black") {
+                this.stats.black++;
                 this.stats.rightBlack++;
             }
         }
@@ -1080,11 +1193,12 @@ class whiteBlackListSeparator {
     }
 
     voteLeft = async () => {
+        if (this.stopFlagSet) return true
         if (this.testMode) {
             await this.moveTo(coordHelper.relativeToAbsolute(this.controlsPositions.voteLeftButtonOnVoteScreen, this.zeroCoords))
         } else {
             await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.voteLeftButtonOnVoteScreen, this.zeroCoords));
-            await this.waitForScreenToLoad(this.screensList.voteScreenWithOverlay);
+            if (!this.stopFlagSet) await this.waitForScreenToLoad(this.screensList.voteScreenWithOverlay);
             await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.randomEmptySpaceOnPlayerRoomWitOverlayScreen, this.zeroCoords));
         }
         this.votesAmountLeft = this.votesAmountLeft - 1;
@@ -1093,11 +1207,12 @@ class whiteBlackListSeparator {
     }
 
     voteRight = async () => {
+        if (this.stopFlagSet) return true
         if (this.testMode) {
             await this.moveTo(coordHelper.relativeToAbsolute(this.controlsPositions.voteRightButtonOnVoteScreen, this.zeroCoords))
         } else {
             await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.voteRightButtonOnVoteScreen, this.zeroCoords));
-            await this.waitForScreenToLoad(this.screensList.voteScreenWithOverlay);
+            if (!this.stopFlagSet) await this.waitForScreenToLoad(this.screensList.voteScreenWithOverlay);
             await this.clickOn(coordHelper.relativeToAbsolute(this.controlsPositions.randomEmptySpaceOnPlayerRoomWitOverlayScreen, this.zeroCoords));
         }
         this.votesAmountLeft = this.votesAmountLeft - 1;
@@ -1106,6 +1221,7 @@ class whiteBlackListSeparator {
     }
 
     skipVote = async () => {
+        if (this.stopFlagSet) return true
         if (this.testMode) {
             await this.moveTo(coordHelper.relativeToAbsolute(this.controlsPositions.skipButtonOnVoteScreen, this.zeroCoords))
         } else {
@@ -1128,8 +1244,7 @@ class whiteBlackListSeparator {
         if (!this.teseractWorker) return 30
         const imageName = `skipAmountCheck_${new Date().toJSON().replaceAll(":", "_").slice(0,19)}`;
         await screen.captureRegion(imageName, this.skipsAmountTwoDigitsRegion, ".png", screen.config.resourceDirectory);
-        //let { data: { text : skipsAmount } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/${imageName}.png`);
-        let { data: { text : skipsAmount } } = await this.teseractWorker.recognize(`./botLogick/temporaryAssets/${imageName}.png`);
+        let { data: { text : skipsAmount } } = await this.teseractWorker.recognize(`./${this.build ? "resources/app/" : ""}botLogick/temporaryAssets/${imageName}.png`);
         skipsAmount = this.cleanUpNumberString(skipsAmount);
         this.consoleNodeLog(`Check skips amount, got ${skipsAmount}`);
         console.log(`Check skips amount, got ${skipsAmount}`);
@@ -1137,8 +1252,7 @@ class whiteBlackListSeparator {
         if (isNaN(+skipsAmount)) {
             const imageName2 = `skipAmountCheck2_${new Date().toJSON().replaceAll(":", "_").slice(0,19)}`;
             await screen.captureRegion(imageName2, this.skipsAmountSingleDigitRegion, ".png", screen.config.resourceDirectory);
-            //let { data: { text : skipsAmount2 } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/${imageName}.png`);
-            let { data: { text : skipsAmount2 } } = await this.teseractWorker.recognize(`./botLogick/temporaryAssets/${imageName}.png`);
+            let { data: { text : skipsAmount2 } } = await this.teseractWorker.recognize(`./${this.build ? "resources/app/" : ""}botLogick/temporaryAssets/${imageName}.png`);
             skipsAmount2 = this.cleanUpNumberString(skipsAmount2);
             this.consoleNodeLog(`Check skips amount, got ${skipsAmount2}`);
             console.log(`Check votes amount, got ${skipsAmount2}`);
@@ -1152,8 +1266,7 @@ class whiteBlackListSeparator {
         if (!this.teseractWorker) return 30
         const imageName = `voteAmountCheck_${new Date().toJSON().replaceAll(":", "_").slice(0,19)}`;
         await screen.captureRegion(imageName, this.voteAmountTwoDigitsRegion, ".png", screen.config.resourceDirectory);
-        //let { data: { text : votesAmount } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/${imageName}.png`);
-        let { data: { text : votesAmount } } = await this.teseractWorker.recognize(`./botLogick/temporaryAssets/${imageName}.png`);
+        let { data: { text : votesAmount } } = await this.teseractWorker.recognize(`./${this.build ? "resources/app/" : ""}botLogick/temporaryAssets/${imageName}.png`);
         votesAmount = this.cleanUpNumberString(votesAmount);
         this.consoleNodeLog(`Check votes amount, got ${votesAmount}`);
         console.log(`Check votes amount, got ${votesAmount}`);
@@ -1161,8 +1274,7 @@ class whiteBlackListSeparator {
         if (isNaN(+votesAmount)) {
             const imageName2 = `skipAmountCheck2_${new Date().toJSON().replaceAll(":", "_").slice(0,19)}`;
             await screen.captureRegion(imageName2, this.voteAmountSingleDigitRegion, ".png", screen.config.resourceDirectory);
-            //let { data: { text : votesAmount2 } } = await this.teseractWorker.recognize(`./resources/app/botLogick/temporaryAssets/${imageName}.png`);
-            let { data: { text : votesAmount2 } } = await this.teseractWorker.recognize(`./botLogick/temporaryAssets/${imageName}.png`);
+            let { data: { text : votesAmount2 } } = await this.teseractWorker.recognize(`./${this.build ? "resources/app/" : ""}botLogick/temporaryAssets/${imageName}.png`);
             votesAmount2 = this.cleanUpNumberString(votesAmount2);
             this.consoleNodeLog(`Check votes amount, got ${votesAmount2}`);
             console.log(`Check votes amount, got ${votesAmount2}`);
@@ -1203,9 +1315,8 @@ class whiteBlackListSeparator {
 
     waitForUserInput = async (waitTime=30000) => {
         let waitStartTime = Date.now();
-        while (!this.userDecisionMade && Date.now()-waitStartTime < waitTime) {
+        while (!this.userDecisionMade && Date.now()-waitStartTime < waitTime && !this.stopFlagSet) {
             this.electronWindow.webContents.send("voterControl", {type: "rendererUpdateTimer", payload:{time:`Time left: ${Math.floor((waitTime-(Date.now()-waitStartTime))/1000)}`}});
-            console.log("wait tick");
             await this.sleep(1000);
         }
         if (Date.now()-waitStartTime > waitTime && !this.userDecisionMade) console.log("user decision timeout");
@@ -1265,14 +1376,15 @@ class whiteBlackListSeparator {
         while (stepIndex < path.length) {
             if (path[stepIndex].stepName) this.consoleNodeLog(`path step ${path[stepIndex].stepName}`);
             if (path[stepIndex].screenToHide) {
-                await this.waitForScreenToDisappear(path[stepIndex].screenToHide);
+                await this.waitForScreenToDisappear(path[stepIndex].screenToHide[this.selectedEmulator] || path[stepIndex].screenToHide);
             }
             if (path[stepIndex].screenToLoad) {
-                if (!path[stepIndex].screenToHide || !(await this.checkSignature(path[stepIndex].screenToHide))) await this.waitForScreenToLoad(path[stepIndex].screenToLoad);
+                if (!path[stepIndex].screenToHide ||
+                    !(await this.checkSignature(path[stepIndex].screenToHide[this.selectedEmulator] || path[stepIndex].screenToHide))) await this.waitForScreenToLoad(path[stepIndex].screenToLoad[this.selectedEmulator] || path[stepIndex].screenToLoad);
             }
             if (path[stepIndex].buttonToPush) {
                 //this.consoleNodeLog(`Click on (x: ${path[stepIndex].buttonToPush.x}, y: ${path[stepIndex].buttonToPush.y})`)
-                await this.clickOn(coordHelper.relativeToAbsolute(path[stepIndex].buttonToPush, this.zeroCoords));
+                await this.clickOn(coordHelper.relativeToAbsolute(path[stepIndex].buttonToPush[this.selectedEmulator] || path[stepIndex].buttonToPush, this.zeroCoords));
             }
             if (path[stepIndex].textToInput) {
                 await this.typeIn(path[stepIndex].textToInput)
@@ -1283,7 +1395,7 @@ class whiteBlackListSeparator {
         return true
     }
 
-    waitForScreenToLoad = async (signature, waitTime=30000, multipleScreens) => {
+    waitForScreenToLoad = async (signature, waitTime=30000, multipleScreens, customError) => {
         let isLoaded = false;
         let waitStartTime = Date.now();
         while (!isLoaded) {
@@ -1297,7 +1409,7 @@ class whiteBlackListSeparator {
             }
             //if (!isLoaded) this.consoleNodeLog(`Waiting for screen ${this.getScreenName(multipleScreens ? signature[0] : signature)}`);
             if ((Date.now() - waitStartTime) > waitTime) {
-                this.consoleNodeLog("Screen load took too long, I'ma booooored!")
+                this.consoleNodeLog(customError || "Screen load took too long, I'ma booooored!");
                 throw("Screen load took too long, I'ma booooored!");
             }
             await this.sleep(500);
@@ -1343,8 +1455,7 @@ class whiteBlackListSeparator {
         try {
             this.teseractWorker = await createWorker("eng", 1, {
                 corePath: "../node_modules/tesseract.js-core/",
-                //langPath: `./resources/app/botLogick/langData`,
-                langPath: `./botLogick/langData`,
+                langPath: `./${this.build ? "resources/app/" : ""}botLogick/langData`,
                 logger: m => console.log(m),
                 workerBlobURL: false
             });
@@ -1385,8 +1496,9 @@ class whiteBlackListSeparator {
         let isValid = true;
         let currentDotIndex = 0;
         while (isValid && currentDotIndex < signature.length) {
-            const colorAtPoint = await screen.colorAt(coordHelper.relativeToAbsolute(signature[currentDotIndex].position, this.zeroCoords))
-            //this.consoleNodeLog(`Check color for {x: ${signature[currentDotIndex].position.x}, y: ${signature[currentDotIndex].position.y}} expected (R:${signature[currentDotIndex].color.R}, G:${signature[currentDotIndex].color.G}, B:${signature[currentDotIndex].color.B}) got: (R:${colorAtPoint.R}, G:${colorAtPoint.G}, B:${colorAtPoint.B})`);
+            const position = coordHelper.relativeToAbsolute(signature[currentDotIndex].position, this.zeroCoords);
+            const colorAtPoint = await screen.colorAt(position)
+            this.consoleNodeLog(`Check color for {x: ${position.x}, y: ${position.y}} expected (R:${signature[currentDotIndex].color.R}, G:${signature[currentDotIndex].color.G}, B:${signature[currentDotIndex].color.B}) got: (R:${colorAtPoint.R}, G:${colorAtPoint.G}, B:${colorAtPoint.B})`);
             isValid = await isSameColourDot(
                 signature[currentDotIndex].color,
                 await screen.colorAt(coordHelper.relativeToAbsolute(signature[currentDotIndex].position, this.zeroCoords))
@@ -1471,7 +1583,6 @@ class whiteBlackListSeparator {
     }
 
     manualFindSearchRegion = async () => {
-        this.electronWindow.webContents.send("eye", "open");
         this.consoleNodeClear();
         screen.config.highlightDurationMs = 2000;
         const proposedDPI = 1;
@@ -1486,11 +1597,9 @@ class whiteBlackListSeparator {
             this.consoleNodeLog(`failed to find corner ${logoError}`);
         }
 
-        searchStartPosition.x = searchStartPosition.x;
-        searchStartPosition.y = searchStartPosition.y;
-
         await this.initializeSearchParameters(searchStartPosition, proposedDPI);
 
+        this.electronWindow.webContents.send("eye", "open");
         return true;
     }
 

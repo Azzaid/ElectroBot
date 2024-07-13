@@ -3,6 +3,7 @@ const absoluteToRelative = (dot, zeroCoords) => {
 }
 
 const relativeToAbsolute = (dot, zeroCoords) => {
+    //return {x: Math.round(dot.x)/2 + zeroCoords.x, y: Math.round(dot.y)/2 + zeroCoords.y}\
     return {x: dot.x + zeroCoords.x, y: dot.y + zeroCoords.y}
 }
 
